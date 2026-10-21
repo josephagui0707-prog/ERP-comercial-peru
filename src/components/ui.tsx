@@ -7,7 +7,6 @@ export function Badge({value}:{value:string}){return <span className={'badge rou
 export function Stat({label,value,hint,icon:Icon}:{label:string;value:string|number;hint?:string;icon?:LucideIcon}){return <div className="stat card shadow-sm fade-up border-0"><div className="erp-kpi-head"><small>{label}</small>{Icon&&<Icon size={18} strokeWidth={1.7} aria-hidden="true"/>}</div><strong><StatValue v={value}/></strong>{hint&&<span>{hint}</span>}</div>}
 import {useEffect,useRef,useState} from 'react';
 import {Smartphone,Landmark,CreditCard,Banknote,ShieldCheck,Wallet,Globe,Check} from 'lucide-react';
-import type {LucideIcon} from 'lucide-react';
 /* Métodos de pago de demostración con logos integrados. */
 export type PayMethod={name:string;label:string;sub:string;icon:LucideIcon;a:string;b:string;logo?:string};
 export const PAY_METHODS:PayMethod[]=[
