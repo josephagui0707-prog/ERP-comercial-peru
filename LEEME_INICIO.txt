@@ -1,0 +1,30 @@
+COMO ABRIR EL ERP EN WINDOWS
+===========================
+
+1. Extrae TODO el ZIP (clic derecho > Extraer todo).
+2. Abre la carpeta ERP-comercial-peru-main.
+3. Haz doble clic en INICIAR_ERP.bat.
+4. La primera vez se instalaran las dependencias (requiere Internet).
+5. El navegador se abrira automaticamente en http://localhost:5173/.
+
+Requisito: Node.js LTS con npm instalado (22.12 o superior recomendado).
+Descarga oficial: https://nodejs.org/
+Si falta Node.js, el script lo indicara; no lo instala automaticamente.
+
+Deja abierta la ventana del script mientras usas el ERP.
+Para detener el sistema: Ctrl+C o cerrar esa ventana.
+Si el navegador no se abre, entra manualmente a la direccion indicada.
+Si ya tienes el ERP abierto, no ejecutes otro servidor: usa la misma direccion.
+
+Acceso de demostracion:
+Correo: admin@enterprisecloud.demo
+Clave: Admin123!
+
+Los datos siguen guardandose en localStorage del mismo navegador y origen.
+Usa siempre la misma direccion. localhost y 127.0.0.1 tienen almacenes separados;
+si antes lo abriste con 127.0.0.1, vuelve a esa direccion para ver esos datos.
+
+VERSION ACTUALIZADA
+Detalle de productos, estados automaticos, alertas, archivo historico,
+almacenes completos y documentos vinculados al Kardex.
+Consulta docs/MODULO_4_INVENTARIO.md.
