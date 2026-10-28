@@ -1,0 +1,268 @@
+/* ERP Comercial Perú · Design system · Azul acero / celeste sobrio
+   Se carga después del kit base y aplica tokens únicos a todos los módulos. */
+:root{
+  --bs-primary:#2d7696;--bs-primary-rgb:45,118,150;
+  --accent:#2b7b9a;--nav:#102535;--nav2:#1c3546;
+  --erp-bg:#f3f7f9;--erp-panel:#ffffff;--erp-text:#263f50;
+  --erp-subtle:#718493;--border:#dae4eb;
+  --erp-brand:#2b708d;--erp-brand-hover:#205c75;--erp-quiet:#e9f2f6;
+  --erp-shadow:0 4px 16px rgba(21,46,65,.045);
+}
+:root[data-bs-theme="dark"]{
+  --bs-primary:#528dab;--bs-primary-rgb:82,141,171;
+  --accent:#83c0da;--nav:#101f2d;--nav2:#1b3040;
+  --erp-bg:#101d28;--erp-panel:#1b2b39;--erp-text:#dce9ef;
+  --erp-subtle:#9aafbe;--border:#304757;
+  --erp-brand:#357999;--erp-brand-hover:#428dac;--erp-quiet:#233c4a;
+  --erp-shadow:0 4px 16px rgba(0,0,0,.09);
+}
+:root .shell.bootstrap-erp .sidebar.erp-sidebar{background:var(--nav);border-right:1px solid #375165;width:250px;min-width:250px;max-width:250px}
+:root .sidebar.erp-sidebar .erp-brand{min-height:73px;margin-bottom:2px;padding:17px 16px;border-bottom:1px solid #ffffff14}
+:root .sidebar .brand-logo{width:37px;height:37px;filter:none;transition:none}
+:root .sidebar .erp-brand:hover .brand-logo{transform:none}
+:root .sidebar.erp-sidebar .brand-copy strong{font-size:12.6px;letter-spacing:-.1px;color:#eaf3f8}
+:root .sidebar.erp-sidebar .brand-copy small{font-size:8px;color:#9bb3c2;letter-spacing:.65px}
+:root .erp-sidebar-search{height:40px;background:#1a3040;border:1px solid #355061;margin:15px 12px 13px;border-radius:9px}
+:root .erp-sidebar-search:focus-within{border-color:#79b3cd;box-shadow:0 0 0 2px #79b3cd25}
+:root .sidebar.erp-sidebar .nav-group{margin:2px 0 7px}
+:root .sidebar.erp-sidebar .nav-section-toggle{padding:11px 10px;color:#a4bfce;letter-spacing:.8px;font-size:9.9px;border-radius:7px;min-height:39px}
+:root .sidebar.erp-sidebar .nav-section-toggle:hover{background:#e2f2fb0c;color:#e8f6ff}
+:root .sidebar.erp-sidebar .nav-group-current>.nav-section-toggle{color:#d8ebf4}
+:root .sidebar.erp-sidebar .nav-item.nav-link{color:#b5c9d6;padding:9px 9px 9px 20px;min-height:38px;font-size:11.8px;margin:2px 0;border-left:2px solid transparent;border-radius:7px}
+:root .sidebar.erp-sidebar .nav-item.nav-link:hover{background:#ffffff0b;transform:none;color:#f4fbff}
+:root .sidebar.erp-sidebar .nav-item.nav-link.active{background:#2c5268;color:#f4fbff;border-left-color:#95c8df;box-shadow:none}
+:root .sidebar.erp-sidebar .nav-item svg{color:#97b3c3}
+:root .sidebar.erp-sidebar .nav-item.active svg{color:#c1e4f5}
+:root .sidebar.erp-sidebar nav.erp-nav-scroll{padding:5px 11px 22px;scrollbar-color:#3e5b6a var(--nav)}
+:root .sidebar.erp-sidebar .sidebar-footer{background:var(--nav);border-top:1px solid #ffffff15!important;box-shadow:none}
+:root .sidebar.erp-sidebar .sidebar-footer .logout{background:#ffffff09;border-color:#365266}
+:root .sidebar.erp-sidebar .sidebar-footer .avatar-mini{background:#d8eaf3;color:#24526c}
+:root .topbar{background:var(--erp-panel);border-color:var(--border)!important;height:67px}
+:root .topbar .avatar-mini{background:var(--erp-quiet);color:var(--erp-brand)}
+:root .environment-label{background:color-mix(in srgb,var(--accent) 7%,var(--erp-panel));border-color:var(--border)}
+:root .status-dot{color:var(--erp-subtle)}
+:root .status-dot:before{background:#74b8bc}
+:root .content{max-width:1680px;padding:29px clamp(17px,2.6vw,42px)}
+:root .heading h1{font-size:clamp(24px,2.1vw,30px);letter-spacing:-.7px}
+:root .heading .eyebrow{letter-spacing:1.15px;color:var(--accent)}
+:root .bootstrap-erp .panel.card,:root .bootstrap-erp .stat.card,:root .inventory-module .inv-grid,:root .inventory-module .inv-stat{border:1px solid var(--border)!important;box-shadow:var(--erp-shadow)!important;background:var(--erp-panel);border-radius:11px}
+:root .bootstrap-erp .panel.card:hover,:root .bootstrap-erp .stat.card:hover{box-shadow:0 6px 20px rgba(12,39,58,.09)!important}
+:root .bootstrap-erp .stat.card:hover{transform:none}
+:root .bootstrap-erp .btn-primary,:root .bootstrap-erp .primary.btn,:root .bootstrap-erp .btn.btn-primary,:root .bootstrap-erp .inv-primary,:root .inv-modal .inv-primary{background:var(--erp-brand)!important;border-color:var(--erp-brand)!important;color:#fff!important}
+:root .bootstrap-erp .btn-primary:hover,:root .bootstrap-erp .primary.btn:hover,:root .bootstrap-erp .inv-primary:hover,:root .inv-modal .inv-primary:hover{background:var(--erp-brand-hover)!important;border-color:var(--erp-brand-hover)!important}
+:root .bootstrap-erp .btn-outline-primary{color:var(--accent)!important;border-color:color-mix(in srgb,var(--accent) 70%,var(--border))!important}
+:root .bootstrap-erp .btn-outline-primary:hover{background:var(--erp-brand)!important;color:white!important}
+:root .bootstrap-erp .form-control:focus,:root .bootstrap-erp .form-select:focus,:root .inventory-module input:focus,:root .inventory-module select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+:root .bootstrap-erp .table{--bs-table-striped-bg:transparent;--bs-table-hover-bg:color-mix(in srgb,var(--accent) 5%,var(--erp-panel))}
+:root .bootstrap-erp .table thead th{background:color-mix(in srgb,var(--erp-panel) 78%,var(--erp-bg));letter-spacing:.035em}
+:root .bootstrap-erp .badge:not(.ok):not(.bad){background:var(--erp-quiet);color:var(--erp-text)}
+:root .inventory-module{--inv-purple:var(--erp-brand);--inv-tint:var(--erp-quiet);--accent:var(--erp-brand)}
+:root .inventory-module .inv-stat svg,:root .inventory-module .inv-product>span{color:var(--accent)}
+:root .inventory-module .inv-product>span{background:var(--erp-quiet)}
+:root .inventory-module .inv-tabs a.active{color:var(--accent);border-color:var(--erp-brand);background:var(--erp-quiet)}
+:root .inventory-module .inv-tabs a:hover{color:var(--accent)}
+:root .inventory-module .inv-preview{background:var(--erp-quiet)}
+:root .inventory-module .inv-party{border-color:var(--border)}
+:root .inv-modal{--accent:#83c0da;background:var(--erp-panel);color:var(--erp-text);border-color:var(--border);box-shadow:0 20px 60px #040d1850}
+:root .inv-modal::backdrop{background:#061522ae}
+:root .inv-modal .eyebrow{color:var(--accent)}
+:root .inv-modal :focus-visible,:root .inventory-module :focus-visible{outline-color:var(--accent)}
+:root .inv-modal .inv-primary{background:var(--erp-brand);border-color:var(--erp-brand)}
+:root .inv-modal .inv-preview{background:var(--erp-quiet)}
+:root .erp-payment-banner{background:#264c67}
+:root .login-promo{background:linear-gradient(135deg,#152b3e,#2e617d)}
+:root .login-icon{background:var(--erp-quiet);color:var(--accent)}
+:root .op-grid>div{border-radius:9px}
+:root .pay-card{animation:none;opacity:1;border-radius:10px}
+:root .pay-card:hover{transform:none}
+:root .pay-mark.has-logo img{filter:saturate(.65)}
+:root .pay-card.selected .pay-mark.has-logo img{filter:none}
+
+/* Shared pagination */
+.erp-paged-grid{min-width:0}.erp-page-footer{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;padding:12px 3px 0;font-size:11px;color:var(--erp-subtle)}
+.erp-page-footer>span:first-child{margin-right:auto}.erp-page-footer select,.erp-lookup-footer select{width:auto!important;min-width:64px;min-height:31px;padding:4px 7px;margin-left:7px;border:1px solid var(--border);border-radius:6px;background:var(--erp-panel);color:var(--erp-text)}
+.erp-page-footer button{min-height:31px!important;font-size:11px}.erp-page-footer button:disabled{opacity:.35}
+
+/* Paginated entity search dialogs */
+.erp-lookup-field{min-width:0;align-self:stretch;display:flex;flex-direction:column;gap:7px}
+.erp-lookup-top{min-width:0;display:flex;flex-direction:column;gap:7px}
+.erp-lookup-label{font-size:11px;font-weight:700;color:var(--erp-subtle)}
+.erp-lookup-trigger{border:1px solid var(--border);background:var(--erp-panel);color:var(--erp-text);height:42px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border-radius:8px;text-align:left;font-size:12px;min-width:0}
+.erp-lookup-trigger span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.erp-lookup-trigger svg{flex:none;color:var(--accent)}
+.erp-lookup-trigger:hover,.erp-lookup-trigger:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 13%,transparent)}
+.erp-lookup-details{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--erp-subtle);font-size:11px;min-width:0}
+.erp-lookup-details>*{display:inline-flex;padding:3px 7px;background:var(--erp-quiet);color:var(--erp-text);border-radius:5px;max-width:100%;overflow-wrap:anywhere}
+.erp-lookup-backdrop{position:fixed;inset:0;background:#061726ad;z-index:9999;display:grid;place-items:center;padding:16px;backdrop-filter:blur(2px)}
+.erp-lookup-dialog{width:min(790px,calc(100vw - 32px));max-height:min(680px,calc(100dvh - 32px));display:flex;flex-direction:column;min-height:0;background:var(--erp-panel);color:var(--erp-text);border:1px solid var(--border);border-radius:13px;box-shadow:0 20px 65px #0005;overflow:hidden}
+.erp-lookup-dialog>header{display:flex;align-items:flex-start;gap:15px;justify-content:space-between;padding:22px 24px;border-bottom:1px solid var(--border);flex:none}
+.erp-lookup-dialog h2{font-size:18px;color:var(--erp-text);margin:6px 0}.erp-lookup-dialog header small{font-size:11px;color:var(--erp-subtle)}
+.erp-lookup-close{display:grid;place-items:center;width:33px;height:33px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--erp-subtle)}
+.erp-lookup-close:hover{background:var(--erp-quiet)}
+.erp-lookup-body{display:flex;flex-direction:column;gap:14px;padding:17px 24px 20px;min-height:0}
+.erp-lookup-search{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--erp-bg);border-radius:8px;padding:0 12px;min-height:43px;color:var(--accent)}
+.erp-lookup-search:focus-within{border-color:var(--accent)}
+.erp-lookup-search input{font-size:12px;background:transparent;border:0;outline:0;color:var(--erp-text);min-width:0;width:100%;box-shadow:none;padding:9px 0}
+.erp-lookup-scroller{overflow:auto;max-height:380px;border:1px solid var(--border);border-radius:8px}
+.erp-lookup-scroller .table{margin:0;font-size:12px;color:var(--erp-text)}
+.erp-lookup-scroller .table th{position:sticky;top:0;z-index:1;background:var(--erp-bg);font-size:10px;color:var(--erp-subtle)}
+.erp-lookup-scroller .table td{color:var(--erp-text);background:var(--erp-panel);border-color:var(--border)}
+.erp-lookup-scroller .table b{color:var(--erp-text)}
+.erp-choose{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;font-size:11px}
+.erp-lookup-footer{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;color:var(--erp-subtle);font-size:11px}
+.erp-lookup-footer>span:first-child{margin-right:auto}.erp-lookup-footer button{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);display:grid;place-items:center;background:var(--erp-panel);color:var(--erp-text)}
+.erp-lookup-footer button:disabled{opacity:.4}.erp-lookup-empty{text-align:center;padding:15px;font-size:12px;color:var(--erp-subtle)}
+
+/* Guided transaction flow */
+.erp-process-guide{background:var(--erp-panel);border:1px solid var(--border);border-radius:11px;padding:17px 18px;display:flex;flex-direction:column;gap:13px}
+.erp-process-guide>header{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.erp-process-guide>header>div{display:flex;flex-direction:column;gap:5px}
+.erp-process-guide header strong{font-size:13px}.erp-process-guide header small{font-size:11px;color:var(--erp-subtle);max-width:380px;text-align:right}
+.erp-process-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.erp-process-step{display:flex;align-items:center;gap:10px;min-width:0;padding:12px 10px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--erp-panel) 92%,var(--erp-bg));color:var(--erp-subtle)}
+.erp-process-step:hover{color:var(--accent);border-color:var(--accent)}
+.erp-process-step.is-current{background:var(--erp-quiet);border-color:var(--erp-brand);color:var(--erp-text)}
+.erp-step-num{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:7px;color:var(--accent);background:var(--erp-quiet);font-size:11px;font-weight:800}
+.erp-process-step.is-current .erp-step-num{background:var(--erp-brand);color:white}
+.erp-process-step b{font-size:11px;display:block}.erp-process-step small{font-size:9.5px;display:block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.erp-process-step>span:nth-child(2){min-width:0}.erp-process-arrow{margin-left:auto;opacity:.45;flex:none}
+.erp-process-guide>footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:11px;border-top:1px solid var(--border);font-size:11px;color:var(--erp-subtle)}
+.erp-next-step{color:var(--accent);font-weight:750;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+.erp-maint-hint{font-size:12px;color:var(--erp-subtle)}.erp-maint-actions{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
+@media(max-width:1100px){.erp-process-steps{grid-template-columns:repeat(3,minmax(0,1fr))}.erp-process-arrow{display:none}}
+@media(max-width:800px){:root .shell.bootstrap-erp .sidebar.erp-sidebar{width:260px;min-width:260px;max-width:260px}.erp-process-guide>header{align-items:flex-start;flex-direction:column}.erp-process-guide header small{text-align:left}}
+@media(max-width:640px){.erp-process-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.erp-process-guide>footer{align-items:flex-start;flex-direction:column}.erp-lookup-dialog>header{padding:15px}.erp-lookup-body{padding:14px}.erp-page-footer{justify-content:center}.erp-page-footer>span:first-child{width:100%;text-align:center;margin-right:0}}
+@media(prefers-reduced-motion:reduce){.erp-lookup-backdrop,.erp-lookup-dialog{animation:none}}
+/* Nested lookup inside the inventory native dialog must remain in its top layer. */
+:root .inv-modal:has(.erp-lookup-backdrop){animation:none!important;overflow:visible!important}
+.erp-kpi-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--accent)}
+.erp-kpi-head svg{color:var(--accent);background:var(--erp-quiet);box-sizing:content-box;padding:9px;border-radius:8px;flex:none}
+:root .bootstrap-erp .stat strong{margin-top:13px;margin-bottom:7px}
+:root .pay-mark:not(.has-logo){background:var(--erp-brand)!important}
+
+/* Vista comercial: selección guiada, contexto y acciones semánticas */
+.erp-commerce-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:20px;align-items:start;margin-bottom:18px}
+.erp-commerce-form{min-width:0}.erp-selection-summary{border:1px solid #ccdbe8;background:#f6f9fc;border-radius:12px;overflow:hidden;color:#24435c;position:sticky;top:16px}
+.erp-summary-head{display:flex;gap:12px;align-items:center;background:#e8f1f8;padding:16px;border-bottom:1px solid #d1e0ec}.erp-summary-head strong,.erp-summary-head small,.erp-summary-section strong,.erp-summary-section small{display:block}.erp-summary-head small{color:#62798b;margin-top:3px}.erp-summary-section{padding:13px 16px;border-bottom:1px solid #dce7f0;overflow-wrap:anywhere}.erp-summary-section>span{display:block;color:#62798b;font-size:12px;margin-bottom:6px}.erp-summary-section strong{font-size:14px}.erp-summary-section small{font-size:12px;color:#617b8f;margin-top:4px}.erp-summary-section em{color:#7892a5;font-size:13px;font-style:normal}.erp-summary-total{display:flex;justify-content:space-between;gap:8px;padding:16px;font-size:13px}.erp-summary-total strong{font-size:19px;color:#12628e}
+.erp-action-view{display:inline-flex;align-items:center;gap:5px;margin-right:5px;white-space:nowrap}.erp-table td .btn{margin:2px 4px 2px 0}.erp-table .btn-outline-success{color:#166348;border-color:#6da994}.erp-table .btn-outline-success:hover{background:#166348;color:white}.erp-table .btn-outline-danger{color:#a43d42;border-color:#d8a1a4}.erp-table .btn-outline-danger:hover{background:#a43d42;color:white}
+.erp-detail-backdrop{position:fixed;inset:0;z-index:3000;background:rgba(13,30,48,.6);display:grid;place-items:center;padding:16px}.erp-detail-modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:white;color:#193c54;border-radius:14px;box-shadow:0 22px 65px #06192f55}.erp-detail-modal>header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;padding:22px 24px;border-bottom:1px solid #dae5ef}.erp-detail-modal h2{font-size:20px;margin:6px 0 0}.erp-detail-content{padding:22px 24px}.erp-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.erp-detail-grid>div{border:1px solid #dfebf3;background:#f6f9fc;border-radius:8px;padding:11px;overflow-wrap:anywhere}.erp-detail-grid span{display:block;font-size:12px;color:#62798b;margin-bottom:5px}.erp-detail-grid strong{font-size:14px}.erp-detail-content h3{font-size:16px;margin:23px 0 10px}.erp-detail-modal>footer{display:flex;justify-content:flex-end;padding:16px 24px;border-top:1px solid #dae5ef}@media(max-width:1000px){.erp-commerce-layout{grid-template-columns:1fr}.erp-selection-summary{position:static}}@media(max-width:540px){.erp-detail-grid{grid-template-columns:1fr}}
+
+
+/* Dashboard ejecutivo reforzado */
+.dashboard-glance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.dashboard-glance-card{border:1px solid var(--border);border-radius:11px;background:var(--erp-panel);padding:16px;box-shadow:var(--erp-shadow)}
+.dashboard-glance-head{display:flex;align-items:center;gap:8px;color:var(--accent);font-size:12px;font-weight:700;margin-bottom:10px}
+.dashboard-glance-head svg{background:var(--erp-quiet);padding:7px;border-radius:8px;box-sizing:content-box}
+.dashboard-glance-card strong{display:block;font-size:28px;line-height:1.1;color:var(--erp-text);margin-bottom:5px}
+.dashboard-glance-card small{color:var(--erp-subtle);font-size:12px}
+.dashboard-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.dashboard-flow-list,.dashboard-alert-list,.dashboard-activity-list{display:flex;flex-direction:column;gap:12px}
+.dashboard-flow-item,.dashboard-alert-item,.dashboard-activity-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 13px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--erp-panel) 86%,var(--erp-bg))}
+.dashboard-flow-item span,.dashboard-kv-list span,.dashboard-activity-copy span{display:block;color:var(--erp-subtle);font-size:11px}
+.dashboard-flow-item strong,.dashboard-kv-list strong{display:block;font-size:20px;color:var(--erp-text)}
+.dashboard-flow-item small,.dashboard-alert-item small,.dashboard-activity-copy small{color:var(--erp-subtle);font-size:11px}
+.dashboard-quick-links{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.dashboard-quick-links a{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:12px}
+.dashboard-kv-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.dashboard-kv-list>div{padding:12px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--erp-panel) 86%,var(--erp-bg))}
+.dashboard-progress-block{display:flex;flex-direction:column;gap:8px}
+.dashboard-progress-label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+.dashboard-progress{height:10px;background:var(--erp-quiet);border-radius:999px;overflow:hidden}
+.dashboard-progress span{display:block;height:100%;background:linear-gradient(90deg,var(--erp-brand),#78b7d4);border-radius:999px}
+.dashboard-progress-block small{font-size:11px;color:var(--erp-subtle)}
+.dashboard-alert-item strong,.dashboard-activity-copy strong{display:block;font-size:13px}
+.dashboard-alert-metrics{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px;color:var(--erp-subtle);white-space:nowrap}
+.dashboard-activity-item{align-items:center}
+.dashboard-activity-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--erp-quiet);color:var(--accent);flex:none}
+.dashboard-activity-copy{min-width:0;flex:1}
+.dashboard-activity-copy>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.dashboard-activity-copy p{margin:0;font-size:12px;color:var(--erp-text)}
+.dashboard-empty-note{margin:0;padding:12px;border:1px dashed var(--border);border-radius:10px;color:var(--erp-subtle);font-size:12px;background:color-mix(in srgb,var(--erp-panel) 82%,var(--erp-bg))}
+
+/* Ajustes del formulario comercial */
+.erp-commerce-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;align-items:start}
+.erp-commerce-form>.field,.erp-commerce-form>.erp-lookup-field{align-self:start}
+.erp-commerce-form .field{display:flex;flex-direction:column;gap:7px;margin:0}
+.erp-commerce-form .field>span{display:block;min-height:16px;margin:0;font-size:12px;font-weight:700;color:var(--erp-subtle)}
+.erp-add-line{align-self:end;min-height:42px;margin-top:22px}
+
+/* Modal de detalle comercial */
+.erp-detail-modal .erp-detail-lead{margin:8px 0 0;color:#617b8f;font-size:12px;max-width:480px}
+.erp-detail-empty{margin-top:18px;padding:14px;border:1px dashed #d3e0ea;border-radius:10px;background:#f7fafc;color:#5f788a;font-size:12px}
+
+@media(max-width:1200px){.dashboard-glance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-grid-3{grid-template-columns:1fr}}
+@media(max-width:640px){.dashboard-glance-grid,.dashboard-kv-list{grid-template-columns:1fr}.dashboard-activity-item,.dashboard-alert-item,.dashboard-flow-item{flex-direction:column;align-items:flex-start}.dashboard-alert-metrics{align-items:flex-start}}
+
+/* Executive overview and local user administration */
+.dashboard-page .dashboard-glance-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.dashboard-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:16px;}
+.dashboard-filters label{display:flex;flex-direction:column;gap:5px;min-width:110px;font-size:12px;flex:1;}
+.dashboard-filters input,.dashboard-filters select{width:100%;min-height:36px;}
+.dashboard-page .activity-scroll{max-height:370px;overflow-y:auto;overscroll-behavior:contain;padding-right:8px;scrollbar-width:thin;scrollbar-color:#81a7ba transparent;}
+.client-ranking{display:grid;gap:25px;padding:12px 0;}
+.client-ranking .dashboard-progress{height:10px;}
+@media(max-width:600px){.dashboard-page .dashboard-glance-grid{grid-template-columns:1fr;}.dashboard-filters label{min-width:120px;}}
+
+.integration-tabs{display:flex;gap:10px;flex-wrap:wrap;}
+.category-summary{display:grid;gap:24px;padding:18px 0;}
+.category-summary .dashboard-progress{height:10px;}
+.user-dialog{border:1px solid var(--bs-border-color);border-radius:18px;padding:0;width:min(720px,calc(100vw - 32px));max-height:90dvh;background:var(--erp-panel);color:var(--erp-text);box-shadow:0 24px 70px #0004;}
+.user-dialog::backdrop{background:#10253699;backdrop-filter:blur(3px);}
+.user-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--bs-border-color);}
+.user-dialog-header h2{font-size:20px;margin:0;}
+.user-dialog-body{padding:24px;}
+.user-dialog .field input,.user-dialog .field select{width:100%;}
+.user-dialog-confirm{width:min(560px,calc(100vw - 32px));}
+.user-change-list{display:grid;gap:14px;margin:20px 0;}
+.user-change-list>div{display:grid;gap:4px;overflow-wrap:anywhere;}
+.user-change-list span{font-size:14px;}
+@media(max-width:600px){.user-dialog .form-grid{grid-template-columns:1fr;}.user-dialog-body{padding:18px;}.user-dialog .admin-actions{flex-wrap:wrap;}}
+
+.user-dialog input,.user-dialog select{background:var(--erp-panel);color:var(--erp-text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:40px;}
+.category-legend{display:grid;gap:10px;margin-top:8px;}
+.category-legend>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:9px;font-size:12px;}
+.category-legend i{width:9px;height:9px;border-radius:50%;}
+.category-legend span{overflow-wrap:anywhere;}
+.purchase-actions{display:flex;flex-wrap:wrap;gap:6px;}
+
+/* Seguimiento documental: conserva las pantallas profesionales de cada módulo. */
+.erp-linked-sale{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0}
+.erp-linked-sale>div{display:flex;flex-direction:column;gap:5px;background:var(--erp-quiet);border:1px solid var(--border);border-radius:8px;padding:14px;min-width:0}
+.erp-linked-sale strong{font-size:15px;color:var(--erp-text)}
+.erp-linked-sale small{font-size:11px;color:var(--erp-subtle);overflow-wrap:anywhere}
+.erp-linked-sale-controls{display:flex;gap:15px;align-items:end;justify-content:flex-end;flex-wrap:wrap}
+.erp-linked-sale-controls>.field{min-width:200px;max-width:280px}
+.erp-linked-message{font-size:12px}
+@media(max-width:800px){.erp-linked-sale{grid-template-columns:1fr}.erp-linked-sale-controls{align-items:stretch;flex-direction:column}.erp-linked-sale-controls>.field{width:100%;max-width:none}}
+
+/* Etapas 2–4: editor comercial común y filtros sin afectar otros módulos */
+.commerce-builder-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(230px,1fr);gap:18px;align-items:start;margin:12px 0 18px}
+.commerce-line-form{display:grid;grid-template-columns:minmax(170px,2fr) repeat(3,minmax(90px,1fr)) auto;gap:10px;align-items:end;margin-top:15px}
+.commerce-line-form label,.commerce-filters label{font-size:.82rem;font-weight:600;display:flex;flex-direction:column;gap:5px}
+.commerce-totals{border:1px solid var(--bs-border-color,#cbd5e1);border-radius:12px;padding:16px;display:grid;gap:10px;background:var(--bs-tertiary-bg,#f7f9fc)}
+.commerce-totals>div{display:flex;justify-content:space-between;gap:12px;font-size:.88rem}
+.commerce-totals .commerce-total-final{border-top:1px solid var(--bs-border-color,#cbd5e1);padding-top:10px;font-size:1.06rem}
+.commerce-totals small{color:var(--bs-secondary-color,#64748b)}
+.commerce-line-input{min-width:80px;max-width:120px}
+.commerce-lines{margin-top:14px}
+.commerce-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:15px}
+.commerce-filters label{flex:1;min-width:170px}
+.commerce-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:180px}
+@media(max-width:1050px){.commerce-line-form{grid-template-columns:repeat(2,minmax(0,1fr))}.commerce-line-form>.erp-lookup-field{grid-column:1/-1}}
+@media(max-width:750px){.commerce-builder-grid{grid-template-columns:1fr}.commerce-filters{flex-direction:column;align-items:stretch}.commerce-filters label{width:100%}}
+
+/* Corrección 2026: overlay de detalles en portal, sin recortes del contenedor animado. */
+.bootstrap-erp .erp-detail-backdrop{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;overflow-y:auto;background:rgba(8,25,42,.73)!important;backdrop-filter:blur(3px)}
+.bootstrap-erp .erp-detail-modal{flex:0 1 820px;width:min(820px,calc(100vw - 32px))!important;max-height:min(85dvh,850px)!important;overflow-y:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 85px rgba(7,20,38,.55)!important;position:relative!important;z-index:1!important;opacity:1!important;transform:none!important}
+.erp-detail-backdrop{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(8,25,42,.73)!important;padding:16px!important;overflow-y:auto!important}
+.erp-detail-modal{width:min(820px,calc(100vw - 32px))!important;max-height:min(85dvh,850px)!important;overflow-y:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 85px rgba(7,20,38,.55)!important;position:relative!important;transform:none!important}
+.commerce-work-queue{background:#fff;border:1px solid #d7e3ed;border-radius:12px;padding:15px 18px;margin-bottom:17px;box-shadow:0 1px 4px rgba(5,36,59,.05)}
+.commerce-work-queue-header{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px}.commerce-work-queue-header div{display:flex;flex-direction:column;gap:3px}.commerce-work-queue-header strong{font-size:13px}.commerce-work-queue-header small{font-size:11px;color:#60798d}
+.commerce-work-queue-items{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.commerce-work-queue-item{display:flex;align-items:center;gap:8px;border:1px solid #d7e3ed;border-radius:9px;padding:9px 10px;color:#305570;text-decoration:none;font-size:11px;min-width:0}.commerce-work-queue-item span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.commerce-work-queue-item strong{margin-left:auto;background:#e8eff4;padding:3px 7px;border-radius:8px;color:#31536c}.commerce-work-queue-item.current{border-color:#5094b2;background:#ecf7fc}.commerce-work-queue-index{background:#dcebf3;padding:4px 7px;border-radius:7px;font-weight:700}
+.commerce-voucher-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.commerce-voucher-stats span{background:white;border:1px solid #d7e3ed;border-radius:9px;padding:12px 15px;font-size:13px}.commerce-voucher-stats strong{font-size:17px;color:#277596;margin-right:7px}.commerce-voucher-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.commerce-voucher-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.commerce-voucher-form label,.commerce-voucher-filters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600}.commerce-voucher-filters{display:flex;gap:12px;margin-bottom:14px}.commerce-voucher-filters>*{min-width:160px;flex:1}
+@media(max-width:830px){.commerce-work-queue-items{grid-template-columns:repeat(2,minmax(0,1fr))}.commerce-work-queue-header{align-items:start;flex-direction:column}.commerce-voucher-form{grid-template-columns:1fr}.commerce-voucher-filters{flex-direction:column}}
+@media(max-width:470px){.commerce-work-queue-items{grid-template-columns:1fr}.erp-detail-modal>header,.erp-detail-content{padding:14px!important}.erp-detail-grid{grid-template-columns:1fr}}
+
+.commerce-return-preview,.commerce-payment-summary{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;background:#f6faff;border:1px solid #d5e6f2;border-radius:10px;padding:14px}.commerce-return-preview>div{flex:1 1 175px;display:flex;flex-direction:column;gap:4px}.commerce-return-preview span,.commerce-payment-summary span{font-size:12px;color:#567086}.commerce-return-preview strong,.commerce-payment-summary b{font-size:15px;color:#164d6a}.commerce-return-preview small{width:100%;color:#607b8b}.commerce-payment-summary{align-items:center}.commerce-payment-summary span{margin-right:8px}
+
+.commerce-new-document{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#fff;border:1px solid #d7e3ed;border-radius:12px;padding:15px 18px;margin:0 0 17px}.commerce-new-document>div{display:flex;flex-direction:column;gap:4px}.commerce-new-document strong{font-size:13px;color:#244b65}.commerce-new-document small{font-size:11px;color:#5d7b8f}@media(max-width:630px){.commerce-new-document{align-items:stretch;flex-direction:column}}
