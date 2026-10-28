@@ -116,3 +116,26 @@ Hay 30 clientes, 40 productos, 4 almacenes, 50 ventas y 25 pedidos ficticios. La
 - **Tema:** azul acero / celeste desaturado en claro y oscuro, incluidas páginas de inventario antes moradas. Los estados de error/advertencia y los logotipos de pasarelas siguen teniendo semántica y reconocimiento propios.
 
 **Alcance técnico:** paginación y búsqueda en el navegador sobre datos locales, apropiada para esta demo. Con cientos de miles de registros y uso multiusuario se necesitarán consultas paginadas y filtros en un backend con base de datos. El proyecto conserva simulación de pagos, comprobantes no SUNAT y roles visuales; no se añaden backend, autenticación real ni facturación electrónica.
+
+
+## Mejora: módulos comerciales conectados (octubre 2026)
+
+Se mantiene el **menú original** de Cotizaciones, Pedidos, Ventas, Comprobantes, Cobros y Postventa; también se preservan sus formularios, tablas y el resto del ERP. Ya no se redirigen las seis rutas a un único formulario guiado.
+
+Flujo enlazado:
+1. Cotizaciones: crear oferta, confirmar aceptación y generar automáticamente el pedido; se abre su módulo.
+2. Pedidos: el pedido recuerda el cliente, los productos y la cotización de origen; «Preparar venta» abre Ventas sin reingresar datos.
+3. Ventas: validar almacén, confirmar la venta y descontar inventario; se abre Comprobantes.
+4. Comprobantes: PDF de demostración y botón «Ir a cobro» para esa venta.
+5. Cobros: venta preseleccionada, confirmación del método simulado y saldo recalculado.
+6. Devoluciones: pantalla original independiente con vínculo a venta e inventario.
+
+El asistente flotante funciona desde todos los módulos. Sin backend se comporta como guía local; Gemini es opcional mediante `server/assistant.mjs` y la configuración descrita en `.env.example`. No ejecutar pagos ni acciones de escritura desde el asistente. Datos locales de demostración, sin comprobantes SUNAT reales.
+
+## Actualización — módulos comerciales, etapas 2–4
+
+La separación de Cotizaciones, Pedidos, Ventas, Comprobantes, Cobros y Devoluciones, el editor de múltiples productos, estados documentales y pruebas de regresión se describen en [`docs/ETAPAS_2_3_4_COMERCIAL.md`](docs/ETAPAS_2_3_4_COMERCIAL.md). Se conserva `State.version = 2` y la misma clave de almacenamiento local.
+
+## Mejora de catálogo comercial: varios productos en un solo paso
+
+Cotizaciones, Pedidos y Ventas directas admiten un diálogo de selección múltiple que conserva la selección entre páginas. El usuario puede agregar varias líneas con cantidades independientes y editarlas luego en el documento. Véase [`docs/MEJORA_SELECCION_MULTIPLE_COMERCIAL.md`](docs/MEJORA_SELECCION_MULTIPLE_COMERCIAL.md).

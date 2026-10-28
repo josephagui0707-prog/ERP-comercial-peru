@@ -5,6 +5,7 @@ import {useStore} from './core/store';
 import {allowed,ROLE_NAMES} from './core/permissions';
 import {ALL_MODULES,ADMIN_SECTIONS,COMMERCE_SECTIONS,FINANCE_SECTIONS,INVENTORY_SECTIONS} from './layout/navigation';
 import Sidebar from './layout/Sidebar';
+import ERPAssistant from './components/ERPAssistant';
 import Login from './pages/Login';
 
 const Purchases=lazy(()=>import('./pages/Purchases'));
@@ -68,6 +69,7 @@ export default function App(){
       <main className="content container-fluid"id="main-content">
         <Suspense fallback={<PageLoader/>}><div key={section}className="route-transition"><Content section={section}/></div></Suspense>
       </main>
+      <ERPAssistant section={section}/>
       <footer className="footer">ERP Comercial Perú © 2026 · Proyecto académico · Operaciones simuladas · Sin validez tributaria</footer>
     </div>
     {sidebarOpen&&<button type="button"className="mobile-backdrop"aria-label="Cerrar menú"onClick={closeSidebar}/>}

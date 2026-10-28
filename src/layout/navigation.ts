@@ -1,4 +1,4 @@
-import {LayoutDashboard,Users,ShoppingCart,Package,Boxes,Wallet,BarChart3,Settings,Shield,Cloud,FileText,Truck,ArrowLeftRight,ClipboardList,Receipt,Database,Building2,UserRound,RefreshCw,Folder,Globe,Coins} from 'lucide-react';
+import {LayoutDashboard,Users,ShoppingCart,Package,Boxes,Wallet,BarChart3,Settings,Shield,Cloud,FileText,Truck,ArrowLeftRight,ClipboardList,Receipt,Database,Building2,UserRound,RefreshCw,Folder,Globe,Coins,PackageCheck} from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 export type NavEntry={path:string;label:string;icon:LucideIcon};
 export type NavGroup={label:string;items:NavEntry[];subtitle?:string};
@@ -7,7 +7,7 @@ export const NAV_GROUPS:NavGroup[]=[
   {label:'INICIO',items:[{path:'inicio',label:'Dashboard ejecutivo',icon:LayoutDashboard}]},
   {label:'FLUJO COMERCIAL',subtitle:'De cotización a cobro',items:[
     {path:'cotizaciones',label:'Cotizaciones',icon:ClipboardList},
-    {path:'pedidos',label:'Pedidos',icon:ShoppingCart},
+    {path:'pedidos',label:'Pedidos',icon:PackageCheck},
     {path:'ventas',label:'Ventas',icon:Receipt},
     {path:'comprobantes',label:'Comprobantes',icon:FileText},
     {path:'cobros',label:'Cobros',icon:Coins},
