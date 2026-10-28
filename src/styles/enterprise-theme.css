@@ -224,3 +224,45 @@
 .category-legend i{width:9px;height:9px;border-radius:50%;}
 .category-legend span{overflow-wrap:anywhere;}
 .purchase-actions{display:flex;flex-wrap:wrap;gap:6px;}
+
+/* Seguimiento documental: conserva las pantallas profesionales de cada módulo. */
+.erp-linked-sale{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0}
+.erp-linked-sale>div{display:flex;flex-direction:column;gap:5px;background:var(--erp-quiet);border:1px solid var(--border);border-radius:8px;padding:14px;min-width:0}
+.erp-linked-sale strong{font-size:15px;color:var(--erp-text)}
+.erp-linked-sale small{font-size:11px;color:var(--erp-subtle);overflow-wrap:anywhere}
+.erp-linked-sale-controls{display:flex;gap:15px;align-items:end;justify-content:flex-end;flex-wrap:wrap}
+.erp-linked-sale-controls>.field{min-width:200px;max-width:280px}
+.erp-linked-message{font-size:12px}
+@media(max-width:800px){.erp-linked-sale{grid-template-columns:1fr}.erp-linked-sale-controls{align-items:stretch;flex-direction:column}.erp-linked-sale-controls>.field{width:100%;max-width:none}}
+
+/* Etapas 2–4: editor comercial común y filtros sin afectar otros módulos */
+.commerce-builder-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(230px,1fr);gap:18px;align-items:start;margin:12px 0 18px}
+.commerce-line-form{display:grid;grid-template-columns:minmax(170px,2fr) repeat(3,minmax(90px,1fr)) auto;gap:10px;align-items:end;margin-top:15px}
+.commerce-line-form label,.commerce-filters label{font-size:.82rem;font-weight:600;display:flex;flex-direction:column;gap:5px}
+.commerce-totals{border:1px solid var(--bs-border-color,#cbd5e1);border-radius:12px;padding:16px;display:grid;gap:10px;background:var(--bs-tertiary-bg,#f7f9fc)}
+.commerce-totals>div{display:flex;justify-content:space-between;gap:12px;font-size:.88rem}
+.commerce-totals .commerce-total-final{border-top:1px solid var(--bs-border-color,#cbd5e1);padding-top:10px;font-size:1.06rem}
+.commerce-totals small{color:var(--bs-secondary-color,#64748b)}
+.commerce-line-input{min-width:80px;max-width:120px}
+.commerce-lines{margin-top:14px}
+.commerce-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:15px}
+.commerce-filters label{flex:1;min-width:170px}
+.commerce-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:180px}
+@media(max-width:1050px){.commerce-line-form{grid-template-columns:repeat(2,minmax(0,1fr))}.commerce-line-form>.erp-lookup-field{grid-column:1/-1}}
+@media(max-width:750px){.commerce-builder-grid{grid-template-columns:1fr}.commerce-filters{flex-direction:column;align-items:stretch}.commerce-filters label{width:100%}}
+
+/* Corrección 2026: overlay de detalles en portal, sin recortes del contenedor animado. */
+.bootstrap-erp .erp-detail-backdrop{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;overflow-y:auto;background:rgba(8,25,42,.73)!important;backdrop-filter:blur(3px)}
+.bootstrap-erp .erp-detail-modal{flex:0 1 820px;width:min(820px,calc(100vw - 32px))!important;max-height:min(85dvh,850px)!important;overflow-y:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 85px rgba(7,20,38,.55)!important;position:relative!important;z-index:1!important;opacity:1!important;transform:none!important}
+.erp-detail-backdrop{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(8,25,42,.73)!important;padding:16px!important;overflow-y:auto!important}
+.erp-detail-modal{width:min(820px,calc(100vw - 32px))!important;max-height:min(85dvh,850px)!important;overflow-y:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 85px rgba(7,20,38,.55)!important;position:relative!important;transform:none!important}
+.commerce-work-queue{background:#fff;border:1px solid #d7e3ed;border-radius:12px;padding:15px 18px;margin-bottom:17px;box-shadow:0 1px 4px rgba(5,36,59,.05)}
+.commerce-work-queue-header{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px}.commerce-work-queue-header div{display:flex;flex-direction:column;gap:3px}.commerce-work-queue-header strong{font-size:13px}.commerce-work-queue-header small{font-size:11px;color:#60798d}
+.commerce-work-queue-items{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.commerce-work-queue-item{display:flex;align-items:center;gap:8px;border:1px solid #d7e3ed;border-radius:9px;padding:9px 10px;color:#305570;text-decoration:none;font-size:11px;min-width:0}.commerce-work-queue-item span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.commerce-work-queue-item strong{margin-left:auto;background:#e8eff4;padding:3px 7px;border-radius:8px;color:#31536c}.commerce-work-queue-item.current{border-color:#5094b2;background:#ecf7fc}.commerce-work-queue-index{background:#dcebf3;padding:4px 7px;border-radius:7px;font-weight:700}
+.commerce-voucher-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.commerce-voucher-stats span{background:white;border:1px solid #d7e3ed;border-radius:9px;padding:12px 15px;font-size:13px}.commerce-voucher-stats strong{font-size:17px;color:#277596;margin-right:7px}.commerce-voucher-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}.commerce-voucher-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.commerce-voucher-form label,.commerce-voucher-filters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600}.commerce-voucher-filters{display:flex;gap:12px;margin-bottom:14px}.commerce-voucher-filters>*{min-width:160px;flex:1}
+@media(max-width:830px){.commerce-work-queue-items{grid-template-columns:repeat(2,minmax(0,1fr))}.commerce-work-queue-header{align-items:start;flex-direction:column}.commerce-voucher-form{grid-template-columns:1fr}.commerce-voucher-filters{flex-direction:column}}
+@media(max-width:470px){.commerce-work-queue-items{grid-template-columns:1fr}.erp-detail-modal>header,.erp-detail-content{padding:14px!important}.erp-detail-grid{grid-template-columns:1fr}}
+
+.commerce-return-preview,.commerce-payment-summary{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;background:#f6faff;border:1px solid #d5e6f2;border-radius:10px;padding:14px}.commerce-return-preview>div{flex:1 1 175px;display:flex;flex-direction:column;gap:4px}.commerce-return-preview span,.commerce-payment-summary span{font-size:12px;color:#567086}.commerce-return-preview strong,.commerce-payment-summary b{font-size:15px;color:#164d6a}.commerce-return-preview small{width:100%;color:#607b8b}.commerce-payment-summary{align-items:center}.commerce-payment-summary span{margin-right:8px}
+
+.commerce-new-document{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#fff;border:1px solid #d7e3ed;border-radius:12px;padding:15px 18px;margin:0 0 17px}.commerce-new-document>div{display:flex;flex-direction:column;gap:4px}.commerce-new-document strong{font-size:13px;color:#244b65}.commerce-new-document small{font-size:11px;color:#5d7b8f}@media(max-width:630px){.commerce-new-document{align-items:stretch;flex-direction:column}}

@@ -1,0 +1,17 @@
+/* Exclusivo del catálogo múltiple de Flujo Comercial: no cambia estilos de otros módulos. */
+.commerce-batch-open{display:inline-flex;align-items:center;gap:7px;margin-top:14px}
+.commerce-batch-dialog{width:min(1050px,calc(100vw - 24px));max-height:min(850px,calc(100dvh - 24px))}
+.commerce-batch-dialog>header{padding:20px 24px}
+.commerce-batch-scroller{max-height:min(430px,46dvh)}
+.commerce-batch-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px}
+.commerce-batch-bar label{display:flex;gap:9px;align-items:center;cursor:pointer;font-weight:650}
+.commerce-batch-bar input,.commerce-batch-scroller input[type=checkbox]{height:17px;width:17px;accent-color:var(--accent,#1978ac);cursor:pointer}
+.commerce-batch-bar span{display:flex;align-items:center;gap:6px;color:var(--erp-subtle,#64748b)}
+.commerce-batch-selected td{background:color-mix(in srgb,var(--accent,#1978ac) 7%,var(--erp-panel,#fff))!important}
+.commerce-batch-hint{display:block;font-size:11px;color:var(--erp-subtle,#64748b);margin-top:3px}
+.commerce-batch-qty{min-width:75px;width:95px;max-width:100%;font-size:12px}
+.commerce-batch-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid var(--border,#e2e8f0);padding-top:14px;flex-wrap:wrap;font-size:12px}
+.commerce-batch-actions>div{margin-right:auto;display:flex;flex-direction:column;gap:3px}
+.commerce-batch-actions>div span,.commerce-batch-actions small{font-size:11px;color:var(--erp-subtle,#64748b)}
+@media(max-width:640px){.commerce-batch-dialog>header{padding:14px}.commerce-batch-scroller{max-height:36dvh}.commerce-batch-actions>div{width:100%}.commerce-batch-actions>.btn{flex:1}}
+.commerce-batch-helper{font-size:12px;color:var(--erp-subtle,#64748b);margin:8px 0 2px}
