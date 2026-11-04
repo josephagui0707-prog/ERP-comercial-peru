@@ -1,0 +1,20 @@
+ERP COMERCIAL PERÚ — DEMOSTRACIÓN ESTÁTICA (SIN BACKEND)
+
+Publicación en Render Static Site:
+Build command: npm ci && npm run build
+Publish directory: dist
+El archivo public/_redirects permite abrir las rutas internas directamente.
+
+Acceso de demostración:
+Organización: AULA
+Administrador: admin@enterprisecloud.demo
+Contraseña: Admin123!
+También hay perfiles de ventas, almacén, finanzas, reparto y monitor.
+
+IMPORTANTE:
+- No hay servidor ni autenticación real: NO uses datos personales o comerciales sensibles.
+- Los datos se guardan en localStorage del navegador; cada computadora y teléfono son independientes.
+- GPS es únicamente local: no se sincronizan posiciones con otro dispositivo.
+- El asistente funciona con comandos locales; no llama a Gemini.
+- Revoca cualquier clave API que se haya expuesto en capturas o repositorios.
+- No hay garantía de compilación hasta que Render complete npm ci y npm run build.
