@@ -1,3 +1,4 @@
+import {calculateRoadRoute,positionOnRoad} from '../features/tracking/roadRoute';
 /** API local para publicación estática: datos de demostración por navegador. */
 export class HttpError extends Error {constructor(readonly status:number,message:string){super(message);}}
 export function newId(){return crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');}
@@ -33,19 +34,32 @@ function points(id:string){return read<any[]>('points_'+id,[]);}
 /** Simulación local progresiva ilustrativa, no navegación por calles. */
 const SIM_STEPS=48, SIM_INTERVAL=2000;
 function simulationPoint(t:any,step:number){
- const x=step/SIM_STEPS;
- const hash=Array.from(String(t.id)).reduce((n:number,c:string)=>((n*31+c.charCodeAt(0))>>>0),7);
- const dLat=t.destination.lat-t.origin.lat,dLng=t.destination.lng-t.origin.lng;
- const magnitude=Math.hypot(dLat,dLng)||0.001;
- const curve=(hash%2?-1:1)*Math.sin(Math.PI*x)*(0.08+(hash%5)*0.025);
- const wiggle=Math.sin(3*Math.PI*x)*(0.014+(hash%3)*0.007)*Math.sin(Math.PI*x);
- const offset=(curve+wiggle)*magnitude;
- return {lat:+(t.origin.lat+dLat*x-dLng/magnitude*offset).toFixed(6),
-         lng:+(t.origin.lng+dLng*x+dLat/magnitude*offset).toFixed(6),
-         seq:step+1,at:(t.started||Date.now())+step*SIM_INTERVAL,accuracy:0};
+ if(!t.roadRoute)throw new HttpError(422,'No hay un trazado sobre las calles. Calcula la ruta vial antes de comenzar.');
+ const position=positionOnRoad(t.roadRoute,step/SIM_STEPS);
+ return {...position,seq:step+1,at:(t.started||Date.now())+step*SIM_INTERVAL,accuracy:0};
 }
+async function ensureRoadRoute(t:any){
+ if(t.roadRoute?.coordinates?.length>1)return;
+ const roadRoute=await calculateRoadRoute(t.origin,t.destination);
+ t.roadRoute=roadRoute;
+ if(t.mode==='demo'){
+   const old=points(t.id);
+   if(t.status==='en_ruta'){
+     // Recalcular la ruta de entregas antiguas antes de seguir animando.
+     t.started=Date.now();write('points_'+t.id,[simulationPoint(t,0)]);
+   }else if(t.status==='entregada'&&old.length){
+     t.started??=t.created||Date.now()-SIM_STEPS*SIM_INTERVAL;
+     write('points_'+t.id,Array.from({length:SIM_STEPS+1},(_,i)=>simulationPoint(t,i)));
+   }else if(t.status==='lista'||t.status==='cancelada'){
+     write('points_'+t.id,[]);
+   }
+ }
+ const all=trips(),index=all.findIndex((item:any)=>item.id===t.id);
+ if(index>=0){all[index]=t;write('trips',all);}
+}
+
 function advanceSimulation(t:any){
- if(t.mode!=='demo'||t.status!=='en_ruta'||!t.started)return;
+ if(t.mode!=='demo'||t.status!=='en_ruta'||!t.started||!t.roadRoute)return;
  const steps=Math.min(SIM_STEPS,Math.max(0,Math.floor((Date.now()-t.started)/SIM_INTERVAL)));
  const saved=points(t.id);
  for(let i=saved.length;i<=steps;i++)saved.push(simulationPoint(t,i));
@@ -78,14 +92,15 @@ export async function api<T>(path:string,method='GET',body?:unknown,signal?:Abor
  else if(route==='/audit'){result=read('audit',[]);}
  else if(route==='/trips'&&method==='GET'){trips().forEach(advanceSimulation);const u=current();result=trips().filter(t=>u?.role==='admin'||!['repartidor','monitor'].includes(u?.role||'')||t.driver===u?.id||t.viewer===u?.id);}
  else if(route==='/trips'&&method==='POST'){
-  const list=trips(),all=users();const t={id:input.id||newId(),title:input.title,mode:input.mode,status:'lista',driver:input.driver,viewer:input.viewer,created_by:current()?.id||'',driverName:all.find(u=>u.id===input.driver)?.name||'Repartidor',viewerName:all.find(u=>u.id===input.viewer)?.name||'Monitor',order_ref:input.order_ref||'',origin:input.origin,destination:input.destination,created:Date.now(),started:null,ended:null};
+  const roadRoute=await calculateRoadRoute(input.origin,input.destination);
+  const list=trips(),all=users();const t={id:input.id||newId(),title:input.title,mode:input.mode,roadRoute,status:'lista',driver:input.driver,viewer:input.viewer,created_by:current()?.id||'',driverName:all.find(u=>u.id===input.driver)?.name||'Repartidor',viewerName:all.find(u=>u.id===input.viewer)?.name||'Monitor',order_ref:input.order_ref||'',origin:input.origin,destination:input.destination,created:Date.now(),started:null,ended:null};
   list.unshift(t);write('trips',list);audit('entrega.creada',t.id);result=t;
  }else if(parts[0]==='trips'&&parts[1]){
   const list=trips(),i=list.findIndex(t=>t.id===parts[1]);if(i<0)throw new HttpError(404,'Entrega no encontrada.');const trip=list[i];
-  if(method==='GET'){advanceSimulation(trip);const after=Number(new URLSearchParams(path.split('?')[1]||'').get('after')||0);result={trip,points:points(trip.id).filter(p=>p.seq>after)};}
+  if(method==='GET'){await ensureRoadRoute(trip);advanceSimulation(trip);const after=Number(new URLSearchParams(path.split('?')[1]||'').get('after')||0);result={trip,points:points(trip.id).filter(p=>p.seq>after)};}
   else if(parts[2]==='points'&&method==='POST'){const samples=points(trip.id);samples.push({...input,seq:samples.length+1});write('points_'+trip.id,samples);result={ok:true};}
   else if(method==='POST'){
-   if(parts[2]==='iniciar'){trip.status='en_ruta';trip.started??=Date.now();if(trip.mode==='demo'){write('points_'+trip.id,[simulationPoint(trip,0)]);}audit('entrega.iniciada',trip.id);}
+   if(parts[2]==='iniciar'){await ensureRoadRoute(trip);trip.status='en_ruta';trip.started??=Date.now();if(trip.mode==='demo'){write('points_'+trip.id,[simulationPoint(trip,0)]);}audit('entrega.iniciada',trip.id);}
    else if(parts[2]==='finalizar'){trip.status='entregada';trip.ended=Date.now();audit('entrega.entregada',trip.id);}
    else if(parts[2]==='cancelar'){trip.status='cancelada';trip.ended=Date.now();audit('entrega.cancelada',trip.id);}
    else throw new HttpError(404,'Acción no disponible');list[i]=trip;write('trips',list);result=trip;
