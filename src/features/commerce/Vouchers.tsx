@@ -32,8 +32,7 @@ export default function Vouchers(){
  const rows=useMemo(()=>s.sales.filter(v=>(filter==='pendientes'?!hasVoucher(v)&&v.status==='vigente':filter==='emitidos'?hasVoucher(v):true)&&`${v.id} ${clientName(v.clientId)} ${v.serie||''}`.toLowerCase().includes(query.toLowerCase())),[s.sales,filter,query,s.clients]);
  const emit=()=>{
   if(!sale)return;
-  if(!confirmAction(`¿Emitir ${kind} de demostración para ${sale.id}? El número de serie será permanente.`))return;
-  run(()=>{update(old=>issueVoucher(old,sale.id,{tipoComprobante:kind,compradorNombre:name,compradorDoc:doc,compradorTipoDoc:docType,compradorDireccion:address}));setSelected('');setFilter('emitidos');return 'Comprobante emitido. Ya puedes registrar el cobro vinculado a la venta.';});
+  confirmAction(`¿Emitir ${kind} de demostración para ${sale.id}? El número de serie será permanente.`,()=>run(()=>{update(old=>issueVoucher(old,sale.id,{tipoComprobante:kind,compradorNombre:name,compradorDoc:doc,compradorTipoDoc:docType,compradorDireccion:address}));setSelected('');setFilter('emitidos');return 'Comprobante emitido. Ya puedes registrar el cobro vinculado a la venta.';}));
  };
  const pdf=(v:typeof s.sales[number])=>{if(!hasVoucher(v))return;
   receiptPDF({id:v.id,tipoComprobante:v.tipoComprobante,serie:v.serie,correlativo:v.correlativo,date:v.fechaEmision||v.date,

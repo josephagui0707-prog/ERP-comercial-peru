@@ -128,7 +128,7 @@ export function planImport(input:ImportData,current:State):ImportPlan{
  if(status!=='pendiente')s=advanceOrder(s,v,'confirmado');if(status==='preparando')s=advanceOrder(s,v,'preparando');
 });
   documents('Ventas',['cliente_id','almacen_id','tipo','fecha','pedido_id','metodo_pago','comprador_nombre','comprador_documento','comprador_tipo_documento','comprador_direccion','serie','correlativo','fecha_emision','observaciones'],group=>{
- const r=group[0],v=fresh(s.sales,r),d=date(r),tipo=choice(r,'tipo',['boleta','factura']) as 'boleta'|'factura',c=s.clients.find(c=>c.id===client(r))!,before=structuredClone(s);
+ const r=group[0],v=fresh(s.sales,r),d=date(r),tipo=choice(r,'tipo',['boleta','factura']) as 'boleta'|'factura',clientId=client(r),c=s.clients.find(x=>x.id===clientId)!,before=structuredClone(s);
  const orderId=text(r,'pedido_id',true)||undefined;
  const buyerName=text(r,'comprador_nombre',true)||c.name,buyerDoc=text(r,'comprador_documento',true)||c.document;
  const docKind=(text(r,'comprador_tipo_documento',true)||(buyerDoc.length===11?'RUC':'DNI')).toUpperCase();
