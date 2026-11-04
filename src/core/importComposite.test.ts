@@ -54,8 +54,9 @@ describe('Importación comercial relacionada desde XLSX',()=>{
    expect(duplicate.errors.some(e=>e.toLowerCase().includes('duplicado'))).toBe(true);
    expect(JSON.stringify(first.next)).toBe(previous);
    const wrong:ImportData=structuredClone(data);
-   const sale=wrong.rows.find(r=>r.sheet==='Ventas')!;
-   sale.data.pedido_id='PED-INEXISTENTE';
+   for(const sale of wrong.rows.filter(r=>r.sheet==='Ventas'&&r.data.id==='VEN-XL26-001')){
+     sale.data.pedido_id='PED-INEXISTENTE';
+   }
    const bad=planImport(wrong,start);
    expect(bad.errors.some(e=>e.includes('PED-INEXISTENTE'))).toBe(true);
    expect(JSON.stringify(start)).toBe(JSON.stringify(makeSeed()));
