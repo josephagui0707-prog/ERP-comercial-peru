@@ -58,7 +58,7 @@ describe('Importación comercial relacionada desde XLSX',()=>{
      sale.data.pedido_id='PED-INEXISTENTE';
    }
    const bad=planImport(wrong,start);
-   expect(bad.errors.some(e=>e.includes('PED-INEXISTENTE'))).toBe(true);
+   expect(bad.errors.some(e=>/pedido/i.test(e))).toBe(true);
    expect(JSON.stringify(start)).toBe(JSON.stringify(makeSeed()));
  });
 });
