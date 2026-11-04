@@ -17,3 +17,5 @@ jobs:
         run: npm ci
       - name: Compilar React y TypeScript
         run: npm run build
+      - name: Probar importación de documentos comerciales
+        run: npx vitest run src/core/importComposite.test.ts
