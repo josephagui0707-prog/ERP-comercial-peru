@@ -5,7 +5,6 @@ import {api,newId} from '../../core/api';
 import {useStore} from '../../core/store';
 import type {Account} from '../../core/store';
 import RouteMap from './RouteMap';
-import {samplePlaces} from './types';
 import type {Person,Trip,Position,Place} from './types';
 
 const noPoints:never[]=[];
@@ -22,7 +21,8 @@ export default function NewTrip({user,order,onClose,onCreated}:{user:Account;ord
   const [orderRef,setOrderRef]=useState(order);
   const [mode,setMode]=useState<'gps'|'demo'>('demo'),[title,setTitle]=useState(order?'Entrega de '+order:'Entrega personalizada');
   const [people,setPeople]=useState<Person[]>([]),[viewer,setViewer]=useState(''),[driver,setDriver]=useState(user.role==='repartidor'?user.id:'');
-  const [routeOption,setRouteOption]=useState(0);const [places,setPlaces]=useState(()=>structuredClone(samplePlaces)),[side,setSide]=useState<Side>('origin'),[error,setError]=useState(''),[busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[id]=useState(newId);
+  const [routeOption,setRouteOption]=useState(()=>{try{return (JSON.parse(localStorage.getItem('erp_static_v1_trips')||'[]') as unknown[]).length%practiceRoutes.length;}catch{return 0;}});
+  const [places,setPlaces]=useState(()=>structuredClone(practiceRoutes[routeOption])),[side,setSide]=useState<Side>('origin'),[error,setError]=useState(''),[busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[id]=useState(newId);
   useEffect(()=>{let keep=true;api<Person[]>('/directory').then(list=>{if(!keep)return;setPeople(list);setViewer(list.find(p=>p.role==='monitor')?.id||'');setDriver(user.role==='repartidor'?user.id:list.find(p=>p.role==='repartidor')?.id||'');setLoaded(true);}).catch(e=>keep&&setError(e.message));return()=>{keep=false;};},[user.id,user.role]);
   function edit(which:Side,patch:Partial<Place>){setPlaces(old=>({...old,[which]:{...old[which],...patch}}));}
   const pick=(p:Position)=>edit(side,p);

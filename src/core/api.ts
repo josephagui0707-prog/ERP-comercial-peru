@@ -2,15 +2,33 @@
 export class HttpError extends Error {constructor(readonly status:number,message:string){super(message);}}
 export function newId(){return crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');}
 type Account={id:string;tenant:string;name:string;email:string;phone:string;role:string;active:boolean;password?:string};
-const seed:[string,string,string][]=[['admin','Administrador Demo','Admin123!'],['ventas','Asesor Comercial','Ventas123!'],['almacen','Encargado de Almacén','Almacen123!'],['finanzas','Analista Financiero','Finanzas123!'],['repartidor','Camila · Reparto','Ruta1234!'],['monitor','Diego · Instituto','Mapa1234!']];
+const seed:[string,string,string][]=[['admin','Administrador Demo','Admin123!'],['ventas','Asesor Comercial','Ventas123!'],['almacen','Encargado de Almacén','Almacen123!'],['finanzas','Analista Financiero','Finanzas123!'],['repartidor','Josue · Reparto','Ruta1234!'],['monitor','Jordy · Monitor','Mapa1234!']];
 const key=(item:string)=>'erp_static_v1_'+item;
 function read<T>(item:string,defaultValue:T):T{try{return JSON.parse(localStorage.getItem(key(item))||'null')??defaultValue;}catch{return defaultValue;}}
 function write(item:string,value:unknown){localStorage.setItem(key(item),JSON.stringify(value));}
-function users():Account[]{return read('users',seed.map(([role,name,password])=>({id:role+'-demo',tenant:'AULA',name,email:role+'@enterprisecloud.demo',phone:'',role,active:true,password})));}
+function users():Account[]{
+ const list=read<Account[]>('users',seed.map(([role,name,password])=>({id:role+'-demo',tenant:'AULA',name,email:role+'@enterprisecloud.demo',phone:'',role,active:true,password})));
+ let updated=false;
+ for(const account of list){
+   if(account.id==='repartidor-demo'&&account.name==='Camila · Reparto'){account.name='Josue · Reparto';updated=true;}
+   if(account.id==='monitor-demo'&&account.name==='Diego · Instituto'){account.name='Jordy · Monitor';updated=true;}
+ }
+ if(updated)write('users',list);
+ return list;
+}
 function current():Account|null{const id=read<string|null>('session',null);return users().find(u=>u.id===id&&u.active)||null;}
 function pub(a:Account){const {password:_,...account}=a;return account;}
 function audit(action:string,ref:string){const events=read<any[]>('audit',[]);events.unshift({id:Date.now()+Math.random(),at:Date.now(),action,ref,actor:current()?.email||'Demo'});write('audit',events.slice(0,100));}
-function trips(){return read<any[]>('trips',[]);}
+function trips(){
+ const list=read<any[]>('trips',[]);
+ let updated=false;
+ for(const t of list){
+   if(t.driver==='repartidor-demo'&&t.driverName==='Camila · Reparto'){t.driverName='Josue · Reparto';updated=true;}
+   if(t.viewer==='monitor-demo'&&t.viewerName==='Diego · Instituto'){t.viewerName='Jordy · Monitor';updated=true;}
+ }
+ if(updated)write('trips',list);
+ return list;
+}
 function points(id:string){return read<any[]>('points_'+id,[]);}
 /** Simulación local progresiva ilustrativa, no navegación por calles. */
 const SIM_STEPS=48, SIM_INTERVAL=2000;
