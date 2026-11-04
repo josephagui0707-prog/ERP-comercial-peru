@@ -35,12 +35,19 @@ function Journey({trip,points,user,refresh}:{trip:Trip;points:Sample[];user:Acco
     try{await api('/trips/'+trip.id+'/'+command,'POST',{});setNotice(command==='iniciar'?'Simulación iniciada.':command==='finalizar'?'Llegada confirmada.':'Entrega cancelada.');refresh();}
     catch(e){setError((e as Error).message);}finally{setAction('');}
   };
+  const progress=trip.mode==='demo'&&last?Math.max(0,Math.min(1,(last.seq-1)/48)):0;
+  const metersBeforeTraffic=trip.roadRoute?Math.max(0,(.67-progress)*trip.roadRoute.distance):0;
+  const trafficNotice=trip.mode==='demo'&&trip.roadRoute&&last&&progress>=.12&&progress<.67
+    ?(metersBeforeTraffic>250?'Tráfico moderado más adelante · a '+lengthLabel(metersBeforeTraffic):
+      'Atención: tráfico en los próximos '+lengthLabel(metersBeforeTraffic))
+    :'';
+  const remainingRoad=trip.roadRoute?Math.max(0,trip.roadRoute.distance*(1-progress)):null;
   const freshness=!last?'Esperando primera posición':replay?'Punto del historial':ended?'Última posición guardada':now-last.at>45000?'Sin señal reciente':'Posición actualizada';
   return <div className="rt-columns"><section className="rt-card rt-map-card" aria-label="Detalle geográfico">
     <div className="rt-map-head"><div><span className="rt-kicker">{replay?'REPETICIÓN':trip.mode==='demo'?'RUTA SIMULADA':'LOCALIZACIÓN GPS'}</span><h2>{trip.title}</h2></div><span className={'rt-status '+trip.status}>{statusText[trip.status]}</span></div>
-    <RouteMap origin={trip.origin} destination={trip.destination} points={visible} mode={trip.mode} frameKey={trip.id}/>
-    <div className="rt-map-legend"><span><i className="rt-line"/> Recorrido registrado</span><span><i className="rt-dash"/> Referencia A–B (no navegación)</span></div>
-    <div className="rt-facts"><div><span><Route size={15}/> Recorrido</span><strong>{lengthLabel(total)}</strong></div><div><span><MapPin size={15}/> Hasta B en línea recta</span><strong>{last?lengthLabel(distance(last,trip.destination)):'—'}</strong></div><div><span><Activity size={15}/> {replay?'Hora del punto':'Última lectura'}</span><strong>{last?clock(last.at):'—'}</strong></div></div>
+    <RouteMap origin={trip.origin} destination={trip.destination} points={visible} roadRoute={trip.roadRoute} trafficNotice={trafficNotice} mode={trip.mode} frameKey={trip.id}/>
+    <div className="rt-map-legend"><span><i className="rt-line"/> Ruta vial por calles</span><span><i className="rt-dash"/> Recorrido realizado</span><span>Tráfico: simulación, no datos reales</span></div>
+    <div className="rt-facts"><div><span><Route size={15}/> Recorrido</span><strong>{lengthLabel(total)}</strong></div><div><span><MapPin size={15}/> Por carretera hasta B</span><strong>{trip.roadRoute&&trip.mode==='demo'&&last?lengthLabel(remainingRoad||0):'—'}</strong></div><div><span><Activity size={15}/> {replay?'Hora del punto':'Última lectura'}</span><strong>{last?clock(last.at):'—'}</strong></div></div>
     <section className="rt-replay"><div className="rt-minihead"><h3><History size={18}/> Repetir recorrido</h3>{replay&&<button type="button" className="rt-text" onClick={()=>{setPlaying(false);setCursor(null);}}>Volver al seguimiento</button>}</div>
       {points.length<2?<p>La simulación dibuja posiciones cada 2 segundos. La repetición estará disponible tras registrar dos puntos.</p>:<>
       <div className="rt-player"><button type="button" className="rt-play" aria-label={playing?'Pausar repetición':'Reproducir recorrido'} onClick={()=>{if(playing){setPlaying(false);return;}if(cursor===null||cursor>=points.length-1)setCursor(0);setPlaying(true);}}>{playing?<Pause size={17}/>:<Play size={17}/>}</button>
@@ -52,8 +59,8 @@ function Journey({trip,points,user,refresh}:{trip:Trip;points:Sample[];user:Acco
     <div className="rt-stop"><i>A</i><div><small>Salida</small><strong>{trip.origin.name}</strong></div></div><ArrowDown className="rt-down" size={16}/>
     <div className="rt-stop"><i>B</i><div><small>Destino</small><strong>{trip.destination.name}</strong></div></div>
     <hr/><h3><Users size={16}/> Participantes</h3><dl><dt>Reparte</dt><dd>{trip.driverName}</dd><dt>Monitorea</dt><dd>{trip.viewerName}</dd>{trip.order_ref&&<><dt>Pedido</dt><dd>{trip.order_ref}</dd></>}</dl>
-  </section><section className="rt-card rt-activity"><span className="rt-kicker">ESTADO DEL ENVÍO</span><h3>{trip.mode==='demo'?<Truck size={18}/>:<Radio size={18}/>} {trip.mode==='demo'?'Simulación de aula':'Ubicación del dispositivo'}</h3>
-    <p>{freshness}{last&&trip.mode==='gps'?' · ±'+Math.round(last.accuracy)+' m':''}</p>
+  </section><section className="rt-card rt-activity"><span className="rt-kicker">ESTADO DEL ENVÍO</span><h3>{trip.mode==='demo'?<Truck size={18}/>:<Radio size={18}/>} {trip.mode==='demo'?'Simulación vial de aula':'Ubicación del dispositivo'}</h3>
+    <p>{freshness}{last&&trip.mode==='gps'?' · ±'+Math.round(last.accuracy)+' m':''}</p><small>Rutas: OSRM sobre calles de OpenStreetMap. Los avisos de tráfico son ficticios.</small>
     {(driver||canSimulate)&&!ended&&(trip.mode==='gps'?(driver?<GpsControl trip={trip} onChange={refresh}/>:null):trip.status==='lista'&&<button type="button" className="rt-primary" disabled={!!action} onClick={()=>void change('iniciar')}><Play size={16}/> Iniciar simulación</button>)}
     {driver&&trip.mode==='gps'&&trip.status==='en_ruta'&&<button type="button" className="rt-primary" disabled={!!action} onClick={()=>setConfirm('finalizar')}><Flag size={16}/> Confirmar llegada</button>}
     {user.role==='monitor'&&!ended&&<p>{trip.status==='lista'?'El repartidor aún no inició. El mapa se actualizará cuando salga.':'Puedes seguir el recorrido desde aquí.'}</p>}

@@ -115,3 +115,56 @@
  .rt-nav-theme .leaflet-control-attribution{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){.rt-nav-theme .route-pin.truck{animation:none}}
+
+
+/* Navegación vial de demostración: presentación clara inspirada en mapas
+   de navegación, con datos y cartografía de OpenStreetMap (no de Waze). */
+.rt-street-nav{position:relative;overflow:hidden;background:#e3e9ed;isolation:isolate}
+.rt-street-nav .rt-map{height:clamp(390px,60vh,610px);background:#e5e9ed!important;background-image:none!important}
+.rt-street-nav .leaflet-tile-pane img.leaflet-tile{filter:none!important}
+.rt-street-nav .leaflet-control-zoom{margin-top:13px!important;margin-left:11px!important;border:0!important;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px #24243c33!important}
+.rt-street-nav .leaflet-control-zoom a{background:#fff!important;border-color:#ececf3!important;color:#5735b8!important}
+.rt-street-nav .leaflet-control-attribution{background:#ffffffef!important;color:#464e60!important;font-size:10px;max-width:92%}
+.rt-street-nav .leaflet-control-attribution a{color:#6432cf!important}
+.rt-street-nav .rt-fit{top:12px;right:12px;bottom:auto;width:40px;min-height:40px;padding:8px;border:1px solid #ddddf0;border-radius:12px;color:#5130b5;background:white;box-shadow:0 4px 14px #24243c29}
+.rt-street-nav .route-pin.origin{background:#375eb2;border:3px solid #fff}
+.rt-street-nav .route-pin.destination{background:#6731d7;border:3px solid #fff}
+.rt-street-nav .route-pin.truck{background:#6835dc;color:#fff;border:3px solid #fff;border-radius:50%;width:42px;height:42px;box-shadow:0 0 0 5px #704fe23b,0 5px 17px #301b8566;transform:translateY(-14px);animation:none}
+.rt-street-nav .route-pin.truck svg{transform:rotate(var(--heading,0deg));transition:transform .3s ease}
+.rt-drive-heading{position:absolute;z-index:490;top:12px;left:59px;right:63px;max-width:400px;display:flex;align-items:center;gap:12px;padding:12px 15px;background:#fff;color:#27273d;border:1px solid #ece9f5;border-radius:17px;box-shadow:0 6px 20px #24243c31;pointer-events:none}
+.rt-drive-direction{display:grid;place-items:center;background:#6531d8;color:#fff;width:47px;height:47px;flex:none;border-radius:14px;font-size:28px;font-weight:800}
+.rt-drive-heading>div{min-width:0;display:grid;gap:2px}
+.rt-drive-heading small{font-size:.69rem;color:#685a89;text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+.rt-drive-heading strong{font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:850}
+.rt-drive-heading div>span{font-size:.74rem;color:#6b6880;font-weight:650}
+.rt-traffic-warning{z-index:490;position:absolute;left:14px;top:101px;max-width:min(385px,calc(100% - 28px));display:flex;gap:9px;align-items:center;background:#fff9ea;border:1px solid #e6a94c;color:#6a3814;border-radius:13px;padding:10px 14px;box-shadow:0 6px 16px #7c4d1738}
+.rt-traffic-warning>span{font-size:20px}
+.rt-traffic-warning div{display:grid;gap:2px;line-height:1.2}
+.rt-traffic-warning strong{font-size:.71rem;letter-spacing:.035em}
+.rt-traffic-warning div span{font-size:.8rem;font-weight:650}
+.rt-drive-footer{position:absolute;left:12px;right:12px;bottom:13px;z-index:485;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid #dfd9f6;border-radius:18px;background:#fff;color:#2b2940;box-shadow:0 5px 22px #38314c43;overflow:hidden;pointer-events:none}
+.rt-drive-footer>div{padding:13px 15px;display:grid;gap:2px;min-width:0}
+.rt-drive-footer>div+div{border-left:1px solid #eeeaf7}
+.rt-drive-footer small{font-size:.68rem;font-weight:650;color:#726b86}
+.rt-drive-footer strong{font-size:1.2rem;letter-spacing:-.035em;font-weight:820;white-space:nowrap}
+.rt-map-source{position:absolute;z-index:480;bottom:102px;right:11px;background:#fffffff0;color:#555264;font-size:.66rem;font-weight:650;border-radius:8px;padding:4px 8px;pointer-events:none}
+.rt-street-nav .leaflet-control-attribution{transform:translateY(-89px)}
+.rt-street-nav .rt-map-note{bottom:112px;left:10px;background:#fff9e9;color:#633917;font-weight:700}
+.rt-route-unavailable{position:absolute;bottom:120px;left:12px;z-index:480;color:#6a3018;background:#fff9ec;border:1px solid #ebb96e;border-radius:12px;padding:9px 12px;font-size:.75rem;font-weight:750}
+.rt-map-legend .rt-line{border-color:#6934d8}
+.rt-map-legend .rt-dash{border-top:3px solid #a78bfa}
+.rt-form .rt-street-nav .rt-map{height:245px}
+@media(max-width:620px){
+ .rt-street-nav .rt-map{height:clamp(440px,62vh,560px)}
+ .rt-drive-heading{left:48px;right:57px;padding:9px;gap:8px;border-radius:12px}
+ .rt-drive-direction{width:35px;height:35px;border-radius:9px;font-size:22px}
+ .rt-drive-heading strong{font-size:.81rem}
+ .rt-drive-heading small,.rt-drive-heading div>span{font-size:.62rem}
+ .rt-drive-footer>div{padding:10px 7px}
+ .rt-drive-footer small{font-size:.56rem}
+ .rt-drive-footer strong{font-size:.87rem}
+ .rt-traffic-warning{top:90px;padding:8px 10px}
+ .rt-street-nav .leaflet-control-attribution{transform:translateY(-78px)}
+ .rt-map-source{bottom:94px}
+ .rt-form .rt-street-nav .rt-map{height:245px}
+}
