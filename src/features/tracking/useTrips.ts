@@ -33,11 +33,11 @@ export function useTrips(preferred:string) {
   },[]);
   const choose=useCallback((id:string)=>{current.current=id;revision.current++;cache.current=null;setDetail(null);select(id);void refresh();},[refresh]);
   useEffect(()=>{
-    alive.current=true;void refresh();const events=new EventSource('/api/events');
-    const connected=()=>{setLive(true);void refresh();};events.addEventListener('listo',connected);
-    events.onmessage=()=>void refresh();events.onerror=()=>setLive(false);
-    const timer=window.setInterval(()=>void refresh(),12000);
-    return ()=>{alive.current=false;revision.current++;events.close();clearInterval(timer);};
+    alive.current=true;void refresh();setLive(true);
+    
+    
+    const timer=window.setInterval(()=>void refresh(),1800);
+    return ()=>{alive.current=false;revision.current++;clearInterval(timer);};
   },[refresh]);
   useEffect(()=>{if(preferred)choose(preferred);},[preferred,choose]);
   return {trips,selected,choose,detail:detail?.trip.id===selected?detail:null,ready,live,error,refresh};
