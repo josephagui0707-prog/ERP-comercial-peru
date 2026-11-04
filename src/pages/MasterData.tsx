@@ -4,7 +4,8 @@ import {ArrowRight,Database,Download,FileSpreadsheet,Upload,CheckCircle2,AlertTr
 import {useStore} from '../core/store';
 import {allowed} from '../core/permissions';
 import {MASTER_MODULES} from '../layout/navigation';
-import {importSchema,planImport,readImport} from '../core/importXlsx';
+import {importOptionalColumns,importSchema,planImport,readImport} from '../core/importXlsx';
+import {makeCommercialExampleXlsx} from '../core/commercialTemplate';
 import type {ImportData,SheetName} from '../core/importXlsx';
 import '../styles/master-data.css';
 
@@ -28,6 +29,15 @@ export default function MasterData(){
     try{let total=0;update(current=>{const checked=planImport(data,current);if(checked.errors.length)throw Error(checked.errors[0]);total=checked.rows.length;return checked.next;});setSuccess(`Importación completada: ${total} filas guardadas correctamente. Los módulos y reportes ya muestran los nuevos registros.`);setData(null);setFilename('');if(fileInput.current)fileInput.current.value='';}catch(e){setError((e as Error).message);}finally{setBusy(false);}
   };
   const preview=data?.rows.filter(r=>r.sheet===tab)??[];
+  const previewColumns=[...importSchema[tab],...(importOptionalColumns[tab]??[]).filter(c=>preview.some(r=>Object.prototype.hasOwnProperty.call(r.data,c)))];
+  const commerceCount=data?new Set(data.rows.filter(r=>['Cotizaciones','Pedidos','Ventas','Compras','Cobros','Devoluciones','Caja'].includes(r.sheet)).map(r=>r.sheet+':'+String(r.data.id??''))).size:0;
+  const downloadCommercial=()=>{
+    const content=makeCommercialExampleXlsx();
+    const blob=new Blob([content],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download='ERP_Plantilla_Documentos_Comerciales.xlsx';document.body.appendChild(link);link.click();link.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
   return <div className="stack master-page">
     <header className="heading"><div><span className="eyebrow">MANTENIMIENTO</span><h1>Datos maestros</h1><p>Organiza tus catálogos y carga la información de tu negocio desde un solo lugar.</p></div><span className="master-local"><Database size={16}/> Guardado en este navegador</span></header>
     {user?.role==='admin'&&user.tenant==='AULA'&&<section className="erp-demo-strip"><div><strong>Datos de demostración disponibles</strong><p>30 clientes, 40 productos, 4 almacenes y documentos comerciales para practicar. Restaurar reemplaza solamente los registros comerciales de este navegador.</p></div><button type="button" className="btn btn-outline-primary" onClick={loadDemo}><RotateCcw size={15}/> Restaurar escenario de aula</button></section>}
@@ -35,15 +45,23 @@ export default function MasterData(){
       <div className="master-actions"><a className="btn btn-outline-secondary" href="/plantillas/ERP_Datos_Importacion.xlsx" download><Download size={16}/> Descargar XLSX de ejemplo</a>{user?.role==='admin'&&<label role="button" tabIndex={busy?-1:0} aria-disabled={busy} onKeyDown={e=>{if(!busy&&(e.key==='Enter'||e.key===' ')){e.preventDefault();fileInput.current?.click();}}} className={'btn btn-primary '+(busy?'disabled':'')}><Upload size={16}/> {busy?'Validando archivo…':'Importar datos XLSX'}<input ref={fileInput} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Seleccionar archivo XLSX" disabled={busy} onChange={e=>void read(e.target.files?.[0])} hidden/></label>}</div>
       {user?.role!=='admin'&&<p className="muted">La importación masiva está disponible para el administrador.</p>}
     </section>
+    <section className="master-commerce-intro" aria-label="Plantilla de documentos comerciales">
+      <div className="master-commerce-mark"><FileSpreadsheet size={24}/></div>
+      <div className="master-commerce-text"><span className="eyebrow">OPERACIONES · DOCUMENTOS RELACIONADOS</span><h2>Importar ventas, cotizaciones y cobros con sus detalles</h2>
+        <p>Una hoja por tipo de documento. Repite el ID cuando una cotización, pedido o venta tenga varios productos: el importador agrupa sus líneas, valida fechas, stock, clientes, relaciones e importes y guarda toda la carga de forma atómica.</p>
+        <div className="master-commerce-stats"><span><strong>{state.quotes.length}</strong> Cotizaciones</span><span><strong>{state.orders.length}</strong> Pedidos</span><span><strong>{state.sales.length}</strong> Ventas</span><span><strong>{state.payments.length}</strong> Cobros</span></div>
+      </div>
+      <div className="master-commerce-download"><button type="button" className="btn btn-outline-primary" onClick={downloadCommercial}><Download size={16}/> Descargar plantilla comercial XLSX</button><small>Con fechas, comprador, vigencia, referencias y documentos enlazados. Usa el mismo botón «Importar datos XLSX» de arriba.</small></div>
+    </section>
     {busy&&<p role="status">Procesando el archivo. Espera un momento…</p>}
     {error&&<div className="alert alert-danger" role="alert">{error}</div>}
     {success&&<div className="alert alert-success" role="status"><CheckCircle2 size={18}/> {success}</div>}
-    {data&&plan&&<section className="master-preview" aria-labelledby="preview-title"><div className="master-preview-heading"><div><span className="eyebrow">VISTA PREVIA · SIN GUARDAR</span><h2 id="preview-title">{filename}</h2><p>{data.rows.length} filas · {Object.values(data.counts).filter(Boolean).length} hojas con datos · {plan.newMovements} movimientos previstos</p></div><button className="btn btn-outline-secondary" aria-label="Cancelar importación" onClick={()=>{setData(null);setFilename('');if(fileInput.current)fileInput.current.value='';}}><X size={16}/> Cancelar</button></div>
+    {data&&plan&&<section className="master-preview" aria-labelledby="preview-title"><div className="master-preview-heading"><div><span className="eyebrow">VISTA PREVIA · SIN GUARDAR</span><h2 id="preview-title">{filename}</h2><p>{data.rows.length} filas · {commerceCount} documentos comerciales · {Object.values(data.counts).filter(Boolean).length} hojas con datos · {plan.newMovements} movimientos previstos</p></div><button className="btn btn-outline-secondary" aria-label="Cancelar importación" onClick={()=>{setData(null);setFilename('');if(fileInput.current)fileInput.current.value='';}}><X size={16}/> Cancelar</button></div>
       {plan.errors.length>0?<div className="alert alert-danger" role="alert"><strong><AlertTriangle size={17}/> Corrige {plan.errors.length} errores para continuar. No se ha guardado ningún dato.</strong><ul>{plan.errors.slice(0,60).map((e,i)=><li key={i}>{e}</li>)}</ul>{plan.errors.length>60&&<p>Se muestran los primeros 60 errores. Corrige el archivo y vuelve a seleccionarlo.</p>}</div>:<div className="alert alert-success"><CheckCircle2 size={17}/> Validación correcta. Revisa los registros y confirma la carga.</div>}
       <div className="master-sheet-tabs" role="tablist" aria-label="Hojas del archivo">{Object.entries(data.counts).filter(([,n])=>n>0).map(([name,n])=><button key={name} role="tab" aria-selected={tab===name} className={'btn '+(tab===name?'btn-primary':'btn-outline-secondary')} onClick={()=>{setTab(name as SheetName);setPage(0);}}>{name} <b>{n}</b></button>)}</div>
-      <div className="master-table-scroll"><table className="table table-hover"><thead><tr><th>Fila</th>{importSchema[tab].map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{preview.slice(page*10,page*10+10).map(r=><tr key={r.line}><td>{r.line}</td>{importSchema[tab].map(c=><td key={c}>{String(r.data[c]??'')}</td>)}</tr>)}</tbody></table></div>
+      <div className="master-table-scroll"><table className="table table-hover"><thead><tr><th>Fila</th>{previewColumns.map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{preview.slice(page*10,page*10+10).map(r=><tr key={r.line}><td>{r.line}</td>{previewColumns.map(c=><td key={c}>{String(r.data[c]??'')}</td>)}</tr>)}</tbody></table></div>
       <div className="master-preview-footer"><div className="master-actions"><button className="btn btn-outline-secondary" disabled={page===0} onClick={()=>setPage(p=>p-1)}>Anterior</button><span>{preview.length?`${page*10+1}–${Math.min((page+1)*10,preview.length)} de ${preview.length}`:'Sin filas'}</span><button className="btn btn-outline-secondary" disabled={(page+1)*10>=preview.length} onClick={()=>setPage(p=>p+1)}>Siguiente</button></div><button className="btn btn-primary" disabled={busy||!!plan.errors.length} onClick={commit}><CheckCircle2 size={17}/> Confirmar importación de {data.rows.length} filas</button></div>
-      <p className="muted">La confirmación guarda toda la carga en una sola operación. Los IDs, documentos, SKU y existencias iniciales duplicados bloquean la importación completa.</p>
+      <p className="muted">La confirmación guarda toda la carga de una vez en localStorage. Las referencias, fechas, documentos, SKU, stock insuficiente y registros duplicados bloquean la operación completa. Los registros previos no se reemplazan.</p>
     </section>}
     <div className="master-section-heading"><div><h2>Catálogos del negocio</h2><p>Selecciona un catálogo para consultar, crear o editar sus registros.</p></div><span>{modules.length} catálogos disponibles</span></div>
     <div className="master-grid">{modules.map(({path,label,icon:Icon})=><NavLink to={'/'+path} className={'master-card master-'+path} key={path}><div className="master-card-top"><span className="master-icon"><Icon size={24}/></span><span className="master-count">{count[path].toLocaleString('es-PE')}</span></div><h3>{label}</h3><p>{descriptions[path]}</p><span className="master-card-link">Administrar {label.toLowerCase()} <ArrowRight size={17}/></span></NavLink>)}</div>

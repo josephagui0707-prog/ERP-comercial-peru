@@ -31,7 +31,8 @@ import {
   Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { useStore } from '../core/store';
-import { money } from '../core/types';
+import { money, sumItems, today } from '../core/types';
+import '../styles/dashboard-executive.css';
 import { dueOn, stockOf, totals } from '../core/operations';
 import { Panel, Stat, Badge } from '../components/ui';
 
@@ -62,6 +63,20 @@ export default function Dashboard() {
     ? Math.round((approvedPayments.reduce((acc, p) => acc + p.amount, 0) / validSales.reduce((acc, v) => acc + v.total, 0)) * 100)
     : 0;
 
+  const todayMonth=today().slice(0,7);
+  const monthTitle=new Intl.DateTimeFormat('es-PE',{month:'long',year:'numeric',timeZone:'America/Lima'}).format(new Date());
+  const previousMonth=new Date(Date.UTC(+todayMonth.slice(0,4),+todayMonth.slice(5,7)-2,1)).toISOString().slice(0,7);
+  const salesInMonth=validSales.filter(x=>x.date.startsWith(todayMonth));
+  const prevSales=validSales.filter(x=>x.date.startsWith(previousMonth)).reduce((n,x)=>n+x.total,0);
+  const currentSales=salesInMonth.reduce((n,x)=>n+x.total,0);
+  const monthTrend=prevSales>0?(currentSales/prevSales-1)*100:null;
+  const openQuotes=s.quotes.filter(q=>q.status==='borrador'||q.status==='aprobada');
+  const openQuoteAmount=openQuotes.reduce((n,q)=>n+sumItems(q.items),0);
+  const priorities=[
+    {label:'Pedidos por atender',count:orderPending+orderInProcess,to:'/pedidos'},
+    {label:'Cotizaciones abiertas',count:openQuotes.length,to:'/cotizaciones'},
+    {label:'Productos bajo mínimo',count:lowStock.length,to:'/stock'}
+  ];
   const monthly = Array.from({length:12/period},(_,i)=>({
     mes:period===1?['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][i]:`${period===3?'T':'S'}${i+1}`,
     ventas:validSales.filter(v=>v.date.slice(0,4)===year&&Math.floor((Number(v.date.slice(5,7))-1)/period)===i).reduce((sum,v)=>sum+v.total,0)
@@ -139,20 +154,29 @@ export default function Dashboard() {
       </div>
 
 
-      <section className="erp-welcome" aria-label="Empezar a trabajar">
-        <div className="erp-welcome-main"><span className="erp-welcome-kicker"><Sparkles size={15}/> CENTRO DE OPERACIONES · AULA</span>
-          <h2>Todo el proceso comercial, en un solo lugar.</h2>
-          <p>Crea una propuesta, conviértela en pedido, registra la venta y coordina su entrega. Los registros comerciales se guardan en este navegador.</p>
-          <div className="erp-welcome-actions">
-            {user&&allowed(user.role,'cotizaciones')&&<Link className="btn erp-welcome-primary" to="/cotizaciones?crear=1"><ClipboardList size={17}/> Nueva cotización <ArrowRight size={16}/></Link>}
-            {user&&allowed(user.role,'rutas')&&<Link className="btn erp-welcome-outline" to="/rutas"><ShoppingCart size={17}/> Gestionar entregas</Link>}
-            {user&&allowed(user.role,'datos-maestros')&&<Link className="btn erp-welcome-outline" to="/datos-maestros"><Boxes size={17}/> Datos maestros</Link>}
+      <section className="exec-hero" aria-label="Resumen ejecutivo de operaciones">
+        <div className="exec-hero-main">
+          <div className="exec-hero-meta"><span>REVISIÓN DE OPERACIONES</span><span className="exec-live-indicator">Información de este navegador</span></div>
+          <h2>Resumen comercial · {monthTitle}</h2>
+          <p>Seguimiento de la actividad registrada, las oportunidades comerciales y los pendientes que requieren atención.</p>
+          <div className="exec-hero-metrics">
+            <div className="exec-metric"><span>Ventas vigentes del mes</span><strong>{money(currentSales)}</strong><small>{salesInMonth.length} operaciones · {monthTrend===null?'sin base para comparación':(monthTrend>=0?'+':'')+monthTrend.toFixed(1)+'% vs. mes anterior'}</small></div>
+            <div className="exec-metric"><span>Cartera de cotizaciones abiertas</span><strong>{money(openQuoteAmount)}</strong><small>{openQuotes.length} oportunidades · importes referenciales, no facturados</small></div>
+          </div>
+          <div className="exec-hero-actions">
+            {user&&allowed(user.role,'ventas')&&<Link className="btn btn-primary" to="/ventas"><ChartNoAxesCombined size={16}/> Revisar ventas <ArrowRight size={14}/></Link>}
+            {user&&allowed(user.role,'cotizaciones')&&<Link className="btn btn-outline-secondary" to="/cotizaciones"><ClipboardList size={16}/> Cotizaciones</Link>}
+            {user&&allowed(user.role,'rutas')&&<Link className="btn btn-outline-secondary" to="/rutas"><ShoppingCart size={16}/> Entregas</Link>}
           </div>
         </div>
-        <div className="erp-welcome-guide"><strong>Tu ruta de trabajo</strong>
-          <ol><li><span>01</span>Clientes y productos</li><li><span>02</span>Cotización y aprobación</li><li><span>03</span>Pedido y venta</li><li><span>04</span>Entrega, comprobante y cobro</li></ol>
-          {user?.role==='admin'&&user.tenant==='AULA'&&<button type="button" className="erp-demo-reset" onClick={loadDemo}><RotateCcw size={15}/> Restaurar datos de práctica</button>}
-        </div>
+        <aside className="exec-priority" aria-label="Focos de seguimiento">
+          <div className="exec-priority-title"><h3>Prioridades de gestión</h3><small>Estado actual</small></div>
+          <div className="exec-priority-list">{priorities.map(p=>user&&allowed(user.role,p.to.slice(1))?
+            <Link key={p.label} to={p.to}><span>{p.label}</span><strong>{p.count}</strong><ArrowUpRight size={15}/></Link>:
+            <div key={p.label}><span>{p.label}</span><strong>{p.count}</strong></div>)}</div>
+          <p className="exec-priority-note">Los valores se calculan a partir de los registros del ERP; no incluyen sistemas externos.</p>
+          {user?.role==='admin'&&user.tenant==='AULA'&&<button type="button" className="exec-reset" onClick={loadDemo}><RotateCcw size={14}/> Restaurar escenario de aula</button>}
+        </aside>
       </section>
 
       <div className="stats">

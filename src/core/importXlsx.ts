@@ -21,6 +21,17 @@ export const importSchema={
   Caja:['id','tipo','categoria','descripcion','importe','fecha']
 } as const;
 export type SheetName=keyof typeof importSchema;
+// Columnas adicionales optativas: archivos antiguos siguen siendo compatibles.
+export const importOptionalColumns:Partial<Record<SheetName,readonly string[]>>={
+  Compras:['observaciones'],
+  Cotizaciones:['vigencia_hasta','observaciones'],
+  Pedidos:['cotizacion_id','fecha_entrega','observaciones'],
+  Ventas:['pedido_id','metodo_pago','comprador_nombre','comprador_documento','comprador_tipo_documento','comprador_direccion','serie','correlativo','fecha_emision','observaciones'],
+  Cobros:['referencia'],
+  Devoluciones:['nota_credito'],
+  Caja:['referencia']
+};
+
 export type ImportRow={sheet:SheetName;line:number;data:Record<string,unknown>};
 export type ImportData={rows:ImportRow[];errors:string[];counts:Record<string,number>};
 export type ImportPlan=ImportData & {next:State;newMovements:number};
@@ -29,6 +40,16 @@ const text=(r:ImportRow,c:string,optional=false)=>{const v=String(r.data[c]??'')
 const number=(r:ImportRow,c:string,min=0,integer=false)=>{const raw=text(r,c);const n=Number(raw);if(!Number.isFinite(n)||n<min||n>1e9||(integer&&!Number.isSafeInteger(n)))throw Error(`${c}: número ${integer?'entero ':''}entre ${min} y 1 000 000 000.`);return n;};
 const choice=(r:ImportRow,c:string,values:string[])=>{const v=key(text(r,c));if(!values.includes(v))throw Error(`${c}: utiliza ${values.join(', ')}.`);return v;};
 const date=(r:ImportRow)=>{const raw=r.data.fecha;const v=typeof raw==='number'?XLSX.SSF.format('yyyy-mm-dd',raw):String(raw??'').trim();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||!Number.isFinite(Date.parse(v+'T12:00:00Z'))||new Date(v+'T12:00:00Z').toISOString().slice(0,10)!==v||v>today())throw Error('fecha: utiliza una fecha válida (AAAA-MM-DD), no futura.');return v;};
+const optionalDate=(r:ImportRow,c:string):string|undefined=>{
+ const raw=r.data[c];if(raw===undefined||raw===null||String(raw).trim()==='')return undefined;
+ const v=typeof raw==='number'?XLSX.SSF.format('yyyy-mm-dd',raw):String(raw).trim();
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||!Number.isFinite(Date.parse(v+'T12:00:00Z'))||new Date(v+'T12:00:00Z').toISOString().slice(0,10)!==v)throw Error(c+': fecha inválida (AAAA-MM-DD).');
+ return v;
+};
+const optionalPositiveInteger=(r:ImportRow,c:string):number|undefined=>{
+ const raw=r.data[c];if(raw===undefined||raw===null||String(raw).trim()==='')return undefined;
+ return number(r,c,1,true);
+};
 const id=(r:ImportRow)=>{const v=text(r,'id');if(!/^[A-Za-z0-9_-]{1,40}$/.test(v))throw Error('id: utiliza hasta 40 letras, números, guiones o guiones bajos.');return v;};
 const unique=(values:string[],value:string,label:string)=>{if(values.some(v=>key(v)===key(value)))throw Error(`${label} duplicado: ${value}.`);};
 const ref=(values:string[],value:string,label:string)=>{if(!values.includes(value))throw Error(`${label} no existe: ${value}.`);return value;};
@@ -46,7 +67,10 @@ export function readImport(bytes:ArrayBuffer):ImportData{
     const matrix=XLSX.utils.sheet_to_json<unknown[]>(ws,{header:1,defval:'',blankrows:true,range:0});
     const headers=(matrix[0]??[]).map(v=>String(v).trim());
     const required=importSchema[sheet];
-    if(required.some(h=>!headers.includes(h))||new Set(headers.filter(Boolean)).size!==headers.filter(Boolean).length||headers.some(h=>h&&!required.includes(h as never))){result.errors.push(`${name}: encabezados esperados: ${required.join(', ')}.`);continue;}
+    const allowed=[...required,...(importOptionalColumns[sheet]??[])];
+    if(required.some(h=>!headers.includes(h))||new Set(headers.filter(Boolean)).size!==headers.filter(Boolean).length||headers.some(h=>h&&!allowed.includes(h))){
+      result.errors.push(`${name}: encabezados obligatorios: ${required.join(', ')}. Opcionales: ${(importOptionalColumns[sheet]??[]).join(', ')||'ninguno'}.`);continue;
+    }
     result.counts[name]=0;
     for(let i=1;i<matrix.length;i++){
       const row=matrix[i];if(row.every(v=>v===''||v===null))continue;
@@ -87,13 +111,49 @@ export function planImport(input:ImportData,current:State):ImportPlan{
   };
   const rename=(old:string,next:string)=>{for(const m of s.movements)if(m.reference===old)m.reference=next;for(const e of s.expenses)if(e.source===old)e.source=next;};
   const stamp=(before:State,d:string)=>{for(const k of ['movements','expenses','audit','payments','returns'] as const){const known=new Set(before[k].map(x=>x.id));for(const x of s[k])if(!known.has(x.id))x.date=d;}};
-  documents('Compras',['proveedor_id','almacen_id','estado','documento','pagada','fecha'],group=>{const r=group[0],v=fresh(s.purchases,r),d=date(r),status=choice(r,'estado',['borrador','ordenada','recibida']),paid=choice(r,'pagada',['si','no']),before=structuredClone(s);if(paid==='si'&&status!=='recibida')throw Error('Solo una compra recibida puede estar pagada.');s=savePurchase(s,{supplierId:supplier(r),warehouseId:warehouse(r),items:items(group,true),notes:'Importación XLSX'});const p=s.purchases[0];p.id=v;p.date=d;if(status!=='borrador')s=transitionPurchase(s,v,'ordenar');if(status==='recibida'){s=transitionPurchase(s,v,'recibir',text(r,'documento'));s.purchases.find(p=>p.id===v)!.receivedAt=d;}if(paid==='si'){s=payPurchase(s,v);s.purchases.find(p=>p.id===v)!.paidAt=d;}stamp(before,d);});
-  documents('Cotizaciones',['cliente_id','estado','fecha'],group=>{const r=group[0],v=fresh(s.quotes,r),d=date(r),status=choice(r,'estado',['borrador','aprobada']);s=createQuote(s,client(r),items(group));s.quotes[0].id=v;s.quotes[0].date=d;if(status==='aprobada')s=approveQuote(s,v);});
-  documents('Pedidos',['cliente_id','estado','fecha'],group=>{const r=group[0],v=fresh(s.orders,r),d=date(r),status=choice(r,'estado',['pendiente','confirmado','preparando']);s=createOrder(s,client(r),items(group));s.orders[0].id=v;s.orders[0].date=d;if(status!=='pendiente')s=advanceOrder(s,v,'confirmado');if(status==='preparando')s=advanceOrder(s,v,'preparando');});
-  documents('Ventas',['cliente_id','almacen_id','tipo','fecha'],group=>{const r=group[0],v=fresh(s.sales,r),d=date(r),tipo=choice(r,'tipo',['boleta','factura']) as 'boleta'|'factura',c=s.clients.find(c=>c.id===client(r))!,before=structuredClone(s);s=createSale(s,c.id,items(group),warehouse(r),undefined,{tipoComprobante:tipo,compradorNombre:c.name,compradorDoc:c.document,compradorTipoDoc:c.document.length===11?'RUC':'DNI'});const sale=s.sales[0];rename(sale.id,v);sale.id=v;sale.date=d;sale.fechaEmision=d;stamp(before,d);});
-  for(const r of rows('Cobros'))attempt(r,()=>{const v=fresh(s.payments,r),d=date(r),saleId=ref(s.sales.map(x=>x.id),text(r,'venta_id'),'Venta');if(d<s.sales.find(x=>x.id===saleId)!.date)throw Error('El cobro no puede ser anterior a la venta.');s=recordPayment(s,saleId,number(r,'importe',0.01),text(r,'metodo'),'aprobado');s.payments[0].id=v;s.payments[0].date=d;});
-  for(const r of rows('Devoluciones'))attempt(r,()=>{const v=fresh(s.returns,r),d=date(r),saleId=ref(s.sales.map(x=>x.id),text(r,'venta_id'),'Venta'),before=structuredClone(s);if(d<s.sales.find(x=>x.id===saleId)!.date)throw Error('La devolución no puede ser anterior a la venta.');s=returnItem(s,saleId,product(r),number(r,'cantidad',1,true),text(r,'motivo'));rename(s.returns[0].id,v);s.returns[0].id=v;stamp(before,d);});
-  for(const r of rows('Caja'))attempt(r,()=>{const v=fresh(s.expenses,r),d=date(r),type=choice(r,'tipo',['ingreso','egreso']) as 'ingreso'|'egreso';s.expenses.push({id:v,date:d,type,category:text(r,'categoria'),description:text(r,'descripcion'),amount:number(r,'importe',0.01),source:'import-xlsx'});});
+  documents('Compras',['proveedor_id','almacen_id','estado','documento','pagada','fecha'],group=>{const r=group[0],v=fresh(s.purchases,r),d=date(r),status=choice(r,'estado',['borrador','ordenada','recibida']),paid=choice(r,'pagada',['si','no']),before=structuredClone(s);if(paid==='si'&&status!=='recibida')throw Error('Solo una compra recibida puede estar pagada.');s=savePurchase(s,{supplierId:supplier(r),warehouseId:warehouse(r),items:items(group,true),notes:text(r,'observaciones',true)||'Importación XLSX'});const p=s.purchases[0];p.id=v;p.date=d;if(status!=='borrador')s=transitionPurchase(s,v,'ordenar');if(status==='recibida'){s=transitionPurchase(s,v,'recibir',text(r,'documento'));s.purchases.find(p=>p.id===v)!.receivedAt=d;}if(paid==='si'){s=payPurchase(s,v);s.purchases.find(p=>p.id===v)!.paidAt=d;}stamp(before,d);});
+  documents('Cotizaciones',['cliente_id','estado','fecha','vigencia_hasta','observaciones'],group=>{
+ const r=group[0],v=fresh(s.quotes,r),d=date(r),status=choice(r,'estado',['borrador','aprobada']);
+ const validUntil=optionalDate(r,'vigencia_hasta');if(validUntil&&validUntil<d)throw Error('vigencia_hasta no puede ser anterior a la cotización.');
+ s=createQuote(s,client(r),items(group));s.quotes[0].id=v;s.quotes[0].date=d;
+ s.quotes[0].validUntil=validUntil;s.quotes[0].notes=text(r,'observaciones',true)||undefined;
+ if(status==='aprobada')s=approveQuote(s,v);
+});
+  documents('Pedidos',['cliente_id','estado','fecha','cotizacion_id','fecha_entrega','observaciones'],group=>{
+ const r=group[0],v=fresh(s.orders,r),d=date(r),status=choice(r,'estado',['pendiente','confirmado','preparando']),quoteId=text(r,'cotizacion_id',true)||undefined;
+ const expectedDelivery=optionalDate(r,'fecha_entrega');if(expectedDelivery&&expectedDelivery<d)throw Error('fecha_entrega debe ser igual o posterior a fecha.');
+ s=createOrder(s,client(r),items(group),quoteId);const generated=s.orders[0].id;s.orders[0].id=v;s.orders[0].date=d;
+ s.orders[0].expectedDelivery=expectedDelivery;s.orders[0].notes=text(r,'observaciones',true)||undefined;
+ if(quoteId){const q=s.quotes.find(q=>q.id===quoteId);if(q?.orderId===generated)q.orderId=v;}
+ if(status!=='pendiente')s=advanceOrder(s,v,'confirmado');if(status==='preparando')s=advanceOrder(s,v,'preparando');
+});
+  documents('Ventas',['cliente_id','almacen_id','tipo','fecha','pedido_id','metodo_pago','comprador_nombre','comprador_documento','comprador_tipo_documento','comprador_direccion','serie','correlativo','fecha_emision','observaciones'],group=>{
+ const r=group[0],v=fresh(s.sales,r),d=date(r),tipo=choice(r,'tipo',['boleta','factura']) as 'boleta'|'factura',c=s.clients.find(c=>c.id===client(r))!,before=structuredClone(s);
+ const orderId=text(r,'pedido_id',true)||undefined;
+ const buyerName=text(r,'comprador_nombre',true)||c.name,buyerDoc=text(r,'comprador_documento',true)||c.document;
+ const docKind=(text(r,'comprador_tipo_documento',true)||(buyerDoc.length===11?'RUC':'DNI')).toUpperCase();
+ if(!['RUC','DNI','CE','PASAPORTE','-'].includes(docKind))throw Error('comprador_tipo_documento inválido.');
+ const buyerKind=docKind as 'RUC'|'DNI'|'CE'|'PASAPORTE'|'-';
+ const serie=text(r,'serie',true);const correlativo=optionalPositiveInteger(r,'correlativo');
+ if(Boolean(serie)!==Boolean(correlativo))throw Error('serie y correlativo deben indicarse juntos.');
+ if(serie&&!/^[A-Z0-9-]{1,8}$/.test(serie))throw Error('serie: utiliza hasta 8 letras, números o guiones.');
+ if(serie&&s.sales.some(x=>x.serie===serie&&x.correlativo===correlativo))throw Error('Comprobante duplicado: '+serie+'-'+correlativo);
+ const issued=optionalDate(r,'fecha_emision')||d;
+ if(issued<d||issued>today())throw Error('fecha_emision debe estar entre fecha de venta y hoy.');
+ s=createSale(s,c.id,items(group),warehouse(r),orderId,{
+   tipoComprobante:tipo,compradorNombre:buyerName,compradorDoc:buyerDoc,compradorTipoDoc:buyerKind,
+   compradorDireccion:text(r,'comprador_direccion',true)||undefined
+ });
+ const sale=s.sales[0],generated=sale.id;rename(generated,v);sale.id=v;sale.date=d;sale.fechaEmision=issued;
+ if(serie&&correlativo){sale.serie=serie;sale.correlativo=correlativo;}
+ sale.paymentMethod=text(r,'metodo_pago',true)||sale.paymentMethod;
+ sale.notes=text(r,'observaciones',true)||undefined;
+ if(orderId){const o=s.orders.find(x=>x.id===orderId);if(o?.saleId===generated)o.saleId=v;}
+ stamp(before,d);
+});
+  for(const r of rows('Cobros'))attempt(r,()=>{const v=fresh(s.payments,r),d=date(r),saleId=ref(s.sales.map(x=>x.id),text(r,'venta_id'),'Venta');if(d<s.sales.find(x=>x.id===saleId)!.date)throw Error('El cobro no puede ser anterior a la venta.');s=recordPayment(s,saleId,number(r,'importe',0.01),text(r,'metodo'),'aprobado');s.payments[0].id=v;s.payments[0].date=d;s.payments[0].reference=text(r,'referencia',true)||s.payments[0].reference;});
+  for(const r of rows('Devoluciones'))attempt(r,()=>{const v=fresh(s.returns,r),d=date(r),saleId=ref(s.sales.map(x=>x.id),text(r,'venta_id'),'Venta'),before=structuredClone(s);if(d<s.sales.find(x=>x.id===saleId)!.date)throw Error('La devolución no puede ser anterior a la venta.');s=returnItem(s,saleId,product(r),number(r,'cantidad',1,true),text(r,'motivo'));rename(s.returns[0].id,v);s.returns[0].id=v;s.returns[0].notaCredito=text(r,'nota_credito',true)||undefined;stamp(before,d);});
+  for(const r of rows('Caja'))attempt(r,()=>{const v=fresh(s.expenses,r),d=date(r),type=choice(r,'tipo',['ingreso','egreso']) as 'ingreso'|'egreso';s.expenses.push({id:v,date:d,type,category:text(r,'categoria'),description:text(r,'descripcion'),amount:number(r,'importe',0.01),source:text(r,'referencia',true)||'import-xlsx'});});
   // Validate chronological stock too, so a future receipt cannot cover an earlier sale.
   const known=new Set(current.movements.map(x=>x.id));const newMoves=s.movements.filter(x=>!known.has(x.id)).reverse();
   const balance=new Map(current.inventory.map(i=>[`${i.productId}/${i.warehouseId}`,i.quantity]));
