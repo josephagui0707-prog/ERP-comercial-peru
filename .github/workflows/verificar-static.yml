@@ -18,4 +18,4 @@ jobs:
       - name: Compilar React y TypeScript
         run: npm run build
       - name: Probar importación de documentos comerciales
-        run: npx vitest run src/core/importComposite.test.ts
+        run: npx vitest run src/core/importXlsx.test.ts src/core/importComposite.test.ts
