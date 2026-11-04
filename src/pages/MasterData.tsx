@@ -47,11 +47,11 @@ export default function MasterData(){
     </section>
     <section className="master-commerce-intro" aria-label="Plantilla de documentos comerciales">
       <div className="master-commerce-mark"><FileSpreadsheet size={24}/></div>
-      <div className="master-commerce-text"><span className="eyebrow">OPERACIONES · DOCUMENTOS RELACIONADOS</span><h2>Importar ventas, cotizaciones y cobros con sus detalles</h2>
+      <div className="master-commerce-text"><span className="eyebrow">OPERACIONES · DOCUMENTOS RELACIONADOS</span><h2>Importar documentos comerciales relacionados</h2>
         <p>Una hoja por tipo de documento. Repite el ID cuando una cotización, pedido o venta tenga varios productos: el importador agrupa sus líneas, valida fechas, stock, clientes, relaciones e importes y guarda toda la carga de forma atómica.</p>
         <div className="master-commerce-stats"><span><strong>{state.quotes.length}</strong> Cotizaciones</span><span><strong>{state.orders.length}</strong> Pedidos</span><span><strong>{state.sales.length}</strong> Ventas</span><span><strong>{state.payments.length}</strong> Cobros</span></div>
       </div>
-      <div className="master-commerce-download"><button type="button" className="btn btn-outline-primary" onClick={downloadCommercial}><Download size={16}/> Descargar plantilla comercial XLSX</button><small>Con fechas, comprador, vigencia, referencias y documentos enlazados. Usa el mismo botón «Importar datos XLSX» de arriba.</small></div>
+      <div className="master-commerce-download"><button type="button" className="btn btn-outline-primary" onClick={downloadCommercial}><Download size={16}/> Descargar plantilla comercial XLSX</button><small>Plantilla autónoma: agrega clientes, productos, almacén y stock de ejemplo para evitar referencias faltantes. Después usa «Importar datos XLSX».</small></div>
     </section>
     {busy&&<p role="status">Procesando el archivo. Espera un momento…</p>}
     {error&&<div className="alert alert-danger" role="alert">{error}</div>}
