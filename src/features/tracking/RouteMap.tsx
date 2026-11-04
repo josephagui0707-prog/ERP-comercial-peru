@@ -84,7 +84,7 @@ export default function RouteMap({origin,destination,points,onPick,frameKey='',m
       <div><span>{mode==='demo'?'Velocidad simulada':'Velocidad estimada'}</span><strong>{points.length>1?kmh:'—'} <small>km/h</small></strong></div>
       <div><span>Distancia a B</span><strong>{lengthLabel(metersToDest)}</strong></div>
       <div><span>{mode==='demo'?'Tiempo restante (sim.)':'Ubicación'}</span><strong>{remainingSeconds!==null?Math.ceil(remainingSeconds/60)+' min':last?'Recibida':'Sin datos'}</strong></div>
-    </div></>
+    </div></>}
     <button className="rt-fit" type="button" onClick={()=>frame.current()} aria-label="Ver todo el recorrido"><Maximize2 size={17}/></button>
     {tilesMissing&&<div className="rt-map-note">{mode==='demo'?'Plano ilustrativo de aula · sin conexión':'Calles sin conexión · Se conservan los puntos del recorrido'}</div>}</div>;
 }
