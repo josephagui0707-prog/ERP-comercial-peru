@@ -266,3 +266,87 @@
 .commerce-return-preview,.commerce-payment-summary{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;background:#f6faff;border:1px solid #d5e6f2;border-radius:10px;padding:14px}.commerce-return-preview>div{flex:1 1 175px;display:flex;flex-direction:column;gap:4px}.commerce-return-preview span,.commerce-payment-summary span{font-size:12px;color:#567086}.commerce-return-preview strong,.commerce-payment-summary b{font-size:15px;color:#164d6a}.commerce-return-preview small{width:100%;color:#607b8b}.commerce-payment-summary{align-items:center}.commerce-payment-summary span{margin-right:8px}
 
 .commerce-new-document{display:flex;align-items:center;justify-content:space-between;gap:15px;background:#fff;border:1px solid #d7e3ed;border-radius:12px;padding:15px 18px;margin:0 0 17px}.commerce-new-document>div{display:flex;flex-direction:column;gap:4px}.commerce-new-document strong{font-size:13px;color:#244b65}.commerce-new-document small{font-size:11px;color:#5d7b8f}@media(max-width:630px){.commerce-new-document{align-items:stretch;flex-direction:column}}
+
+/* ===== ERP Comercial 2.0 · Capa visual unificada ===== */
+:root{
+  --erp-brand:#135f74;--erp-brand-hover:#0b485d;--accent:#137e92;
+  --erp-bg:#f2f6f9;--erp-panel:#ffffff;--erp-text:#183243;
+  --erp-subtle:#60788a;--border:#d9e5ed;--erp-quiet:#e9f4f7;
+  --erp-shadow:0 5px 20px rgba(17,48,67,.055);
+  --bs-body-bg:var(--erp-bg);--bs-body-color:var(--erp-text);
+  --bs-border-color:var(--border);--bs-secondary-color:var(--erp-subtle);
+  --bs-tertiary-bg:#f4f8fa;--bs-secondary-bg:#edf4f8;
+}
+:root[data-bs-theme="dark"]{
+  color-scheme:dark;
+  --nav:#081726;--nav2:#17293b;--accent:#6ac7d7;
+  --erp-brand:#287f96;--erp-brand-hover:#3698b0;
+  --erp-bg:#0c1623;--erp-panel:#162638;--erp-text:#edf4fb;
+  --erp-subtle:#acbdd0;--border:#32465c;--erp-quiet:#21394a;
+  --erp-shadow:0 6px 24px rgba(0,0,0,.15);
+  --bs-body-bg:var(--erp-bg);--bs-body-color:var(--erp-text);
+  --bs-border-color:var(--border);--bs-secondary-color:var(--erp-subtle);
+  --bs-tertiary-bg:#1e3044;--bs-secondary-bg:#21364b;
+  --bs-emphasis-color:#f4f8fe;--bs-heading-color:#f1f8ff;
+  --bs-form-control-bg:var(--erp-panel);
+}
+html,body,#root,.shell.bootstrap-erp{background:var(--erp-bg);color:var(--erp-text)}
+:root .heading h1,:root .panel-header h3,:root .bootstrap-erp h2,:root .bootstrap-erp h3{color:var(--erp-text)}
+:root .heading p,:root .dashboard-page .admin-description{color:var(--erp-subtle)}
+:root .bootstrap-erp .panel.card,:root .bootstrap-erp .stat.card,:root .bootstrap-erp .dashboard-glance-card{background:var(--erp-panel);border:1px solid var(--border);border-radius:15px;box-shadow:var(--erp-shadow)}
+:root .bootstrap-erp .stat.card{padding:22px}
+:root .bootstrap-erp .stat.card strong{color:var(--erp-text);font-size:clamp(21px,1.55vw,27px)}
+:root .bootstrap-erp .stat.card small,:root .bootstrap-erp .stat.card span{color:var(--erp-subtle)}
+:root .bootstrap-erp .table{--bs-table-bg:transparent;--bs-table-color:var(--erp-text);--bs-table-border-color:var(--border);--bs-table-hover-bg:var(--erp-quiet);color:var(--erp-text)}
+:root .bootstrap-erp .table>thead th{background:var(--bs-tertiary-bg);color:var(--erp-subtle);font-weight:750}
+:root .bootstrap-erp .table td,:root .bootstrap-erp .table td b,:root .bootstrap-erp .table td strong{color:var(--erp-text)}
+:root .bootstrap-erp td small,:root .bootstrap-erp .text-secondary,:root .bootstrap-erp small.text-muted{color:var(--erp-subtle)!important}
+:root .bootstrap-erp :is(.form-control,.form-select,textarea),:root :is(.erp-detail-modal,.erp-lookup-dialog,.inv-modal) :is(input,select,textarea){background-color:var(--erp-panel);border-color:var(--border);color:var(--erp-text)}
+:root .bootstrap-erp :is(.form-control,.form-select)::placeholder,:root .erp-assistant-panel input::placeholder{color:var(--erp-subtle);opacity:.85}
+:root .bootstrap-erp :is(.form-control,.form-select):disabled{background:var(--bs-tertiary-bg);color:var(--erp-subtle)}
+:root .bootstrap-erp .btn-outline-secondary{color:var(--erp-text);border-color:var(--border)}
+:root .bootstrap-erp .btn-light{color:var(--erp-text);background:var(--bs-tertiary-bg);border-color:var(--border)}
+:root .bootstrap-erp .count{color:var(--accent);background:var(--erp-quiet);border:1px solid var(--border)}
+:root .bootstrap-erp .topbar{background:var(--erp-panel);border-bottom-color:var(--border)}
+:root .bootstrap-erp .breadcrumb b,:root .bootstrap-erp .top-role{color:var(--erp-text)}
+:root .bootstrap-erp .sidebar.erp-sidebar{background:#0b2334}
+:root[data-bs-theme="dark"] .bootstrap-erp .sidebar.erp-sidebar{background:#071829}
+:root .sidebar.erp-sidebar .nav-item.nav-link.active{background:#1d6378;color:#fff;border-color:#78cee1}
+:root .sidebar.erp-sidebar .nav-item.nav-link:hover{background:#ffffff15;color:#fff}
+:root .bootstrap-erp button,:root .bootstrap-erp .btn{font-weight:650}
+:root .bootstrap-erp .btn-primary{border-radius:9px}
+:root .bootstrap-erp .nav-link:focus-visible,:root .bootstrap-erp button:focus-visible{outline:3px solid #5cbacb;outline-offset:2px}
+:root[data-bs-theme="dark"] .bootstrap-erp :is(.badge,.inv-badge){border-color:var(--border)}
+:root[data-bs-theme="dark"] .bootstrap-erp .commerce-totals,:root[data-bs-theme="dark"] .bootstrap-erp .commerce-new-document,:root[data-bs-theme="dark"] .bootstrap-erp .op-grid>div{background:var(--bs-tertiary-bg);border-color:var(--border);color:var(--erp-text)}
+:root[data-bs-theme="dark"] .bootstrap-erp :is(.commerce-totals,.commerce-new-document,.commerce-batch-helper) :is(strong,small,p,span){color:inherit}
+:root[data-bs-theme="dark"] .erp-lookup-dialog,:root[data-bs-theme="dark"] .erp-detail-modal,:root[data-bs-theme="dark"] .inv-modal,:root[data-bs-theme="dark"] .user-dialog{background:var(--erp-panel);color:var(--erp-text);border-color:var(--border)}
+:root[data-bs-theme="dark"] :is(.erp-lookup-dialog,.erp-detail-modal,.inv-modal) :is(h2,h3,strong,label,td,th){color:var(--erp-text)}
+:root[data-bs-theme="dark"] :is(.erp-lookup-dialog,.erp-detail-modal) :is(header,footer,thead th){background:var(--bs-tertiary-bg);border-color:var(--border)}
+:root[data-bs-theme="dark"] .erp-detail-grid>div,:root[data-bs-theme="dark"] .erp-lookup-trigger{background:var(--bs-tertiary-bg);color:var(--erp-text);border-color:var(--border)}
+:root[data-bs-theme="dark"] .rt-screen{--rt-bg:var(--erp-bg);--rt-card:var(--erp-panel);--rt-pale:var(--bs-tertiary-bg);--rt-text:var(--erp-text);--rt-muted:var(--erp-subtle);--rt-border:var(--border)}
+:root[data-bs-theme="dark"] .recharts-text{fill:var(--erp-subtle)}
+:root[data-bs-theme="dark"] .recharts-cartesian-grid line{stroke:var(--border)}
+:root[data-bs-theme="dark"] .recharts-default-tooltip{background:var(--erp-panel)!important;border:1px solid var(--border)!important}
+:root[data-bs-theme="dark"] .bootstrap-erp :is(.master-card,.master-import,.master-summary,.master-section-heading,.master-grid){color:var(--erp-text)}
+:root[data-bs-theme="dark"] .bootstrap-erp .master-card{background:var(--erp-panel);border-color:var(--border)}
+
+/* Una puerta de entrada con acciones claras y jerarquía visual. */
+.erp-welcome{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(265px,.75fr);border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--erp-panel);box-shadow:var(--erp-shadow)}
+.erp-welcome-main{padding:clamp(23px,3vw,38px);background:radial-gradient(circle at 96% 6%,color-mix(in srgb,var(--accent) 19%,transparent),transparent 45%),linear-gradient(130deg,var(--erp-panel),var(--bs-tertiary-bg))}
+.erp-welcome-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:10px;letter-spacing:1.2px;font-weight:800}
+.erp-welcome-main h2{font-size:clamp(22px,2.2vw,32px);font-weight:800;letter-spacing:-1px;line-height:1.23;max-width:560px;margin:15px 0 10px;color:var(--erp-text)}
+.erp-welcome-main p{font-size:13px;line-height:1.7;max-width:640px;color:var(--erp-subtle);margin:0 0 19px}
+.erp-welcome-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+:root .bootstrap-erp .erp-welcome-primary{display:inline-flex;align-items:center;gap:9px;background:var(--erp-brand);color:white;border:1px solid var(--erp-brand);padding:11px 14px;border-radius:9px;font-size:12px}
+:root .bootstrap-erp .erp-welcome-outline{display:inline-flex;align-items:center;gap:8px;background:var(--erp-panel);color:var(--erp-text);border:1px solid var(--border);padding:11px 14px;border-radius:9px;font-size:12px}
+.erp-welcome-guide{padding:25px 24px;display:flex;flex-direction:column;gap:12px;border-left:1px solid var(--border);background:var(--erp-panel)}
+.erp-welcome-guide>strong{font-size:12px;color:var(--erp-text)}
+.erp-welcome-guide ol{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.erp-welcome-guide li{display:flex;align-items:center;gap:11px;font-size:12px;color:var(--erp-text)}
+.erp-welcome-guide li span{font-size:10px;color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:7px;background:var(--erp-quiet);font-weight:800}
+.erp-demo-reset{margin-top:auto;display:flex;align-items:center;gap:7px;width:fit-content;border:0;background:transparent;padding:5px 0;color:var(--accent);font-size:11px;font-weight:700}
+.erp-demo-strip{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:18px;background:var(--erp-quiet);border:1px solid var(--border);border-radius:14px}
+.erp-demo-strip strong{font-size:13px;color:var(--erp-text)}.erp-demo-strip p{font-size:12px;color:var(--erp-subtle);margin:4px 0 0;line-height:1.6}
+.erp-demo-strip .btn{flex-shrink:0;display:flex;align-items:center;gap:8px;font-size:12px}
+@media(max-width:1050px){.erp-welcome{grid-template-columns:1fr}.erp-welcome-guide{border-left:0;border-top:1px solid var(--border)}.erp-welcome-guide ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.erp-welcome-main,.erp-welcome-guide{padding:19px}.erp-welcome-guide ol{grid-template-columns:1fr}.erp-demo-strip{flex-direction:column;align-items:flex-start}}

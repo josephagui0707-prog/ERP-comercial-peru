@@ -5,17 +5,18 @@ const SETTINGS_KEY='erp_pe_admin_settings_v1';
 const CLOUD_KEY='erp_pe_cloud_demo_v1';
 const EVENTS_KEY='erp_pe_events_demo_v1';
 
+const scoped=(key:string,tenant:string)=>tenant==='AULA'?key:key+'_'+tenant;
 function load(key:string):unknown {
   try {const value=localStorage.getItem(key);return value?JSON.parse(value) as unknown:null;}
   catch {return null;}
 }
-export function saveJSON(key:'settings'|'cloud'|'events',value:unknown):void {
+export function saveJSON(key:'settings'|'cloud'|'events',value:unknown,tenant='AULA'):void {
   const keys={settings:SETTINGS_KEY,cloud:CLOUD_KEY,events:EVENTS_KEY};
-  try{localStorage.setItem(keys[key],JSON.stringify(value));}
+  try{localStorage.setItem(scoped(keys[key],tenant),JSON.stringify(value));}
   catch { /* Sin almacenamiento disponible: el estado en memoria sigue operativo. */ }
 }
-export function loadSettings():AdminSettings {
-  const raw=load(SETTINGS_KEY);
+export function loadSettings(tenant='AULA'):AdminSettings {
+  const raw=load(scoped(SETTINGS_KEY,tenant));
   if (!raw||typeof raw!=='object'||Array.isArray(raw))return {...DEFAULT_SETTINGS};
   const r=raw as Partial<AdminSettings>;
   return {
@@ -28,8 +29,8 @@ export function loadSettings():AdminSettings {
     currency:'PEN',timeZone:'America/Lima',
   };
 }
-export function loadServices():CloudService[] {
-  const raw=load(CLOUD_KEY);
+export function loadServices(tenant='AULA'):CloudService[] {
+  const raw=load(scoped(CLOUD_KEY,tenant));
   if(!Array.isArray(raw))return DEFAULT_SERVICES.map(s=>({...s}));
   return DEFAULT_SERVICES.map(s=>{
     const saved=raw.find((entry:unknown)=>entry!=null&&typeof entry==='object'&&
@@ -37,8 +38,8 @@ export function loadServices():CloudService[] {
     return {...s,status:saved?.status==='detenido'?'detenido':'activo'};
   });
 }
-export function loadEvents():SystemEvent[] {
-  const raw=load(EVENTS_KEY);
+export function loadEvents(tenant='AULA'):SystemEvent[] {
+  const raw=load(scoped(EVENTS_KEY,tenant));
   if(!Array.isArray(raw))return [];
   return raw.filter((entry:unknown):entry is SystemEvent=>{
     if(!entry||typeof entry!=='object')return false;

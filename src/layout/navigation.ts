@@ -5,6 +5,7 @@ export type NavGroup={label:string;items:NavEntry[];subtitle?:string};
 /** Operaciones first. Master CRUDs live under Mantenimiento, separate from transaction flows. */
 export const NAV_GROUPS:NavGroup[]=[
   {label:'INICIO',items:[{path:'inicio',label:'Dashboard ejecutivo',icon:LayoutDashboard}]},
+  {label:'DISTRIBUCIÓN',items:[{path:'rutas',label:'Rutas y entregas',icon:Truck}]},
   {label:'FLUJO COMERCIAL',subtitle:'De cotización a cobro',items:[
     {path:'cotizaciones',label:'Cotizaciones',icon:ClipboardList},
     {path:'pedidos',label:'Pedidos',icon:PackageCheck},

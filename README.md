@@ -1,143 +1,117 @@
-> Actualización: Datos maestros e importación XLSX con vista previa. Consulta [LEEME_IMPORTACION.md](LEEME_IMPORTACION.md). Una instalación nueva inicia sin registros empresariales; los datos locales existentes se conservan.
+# ERP Comercial Perú · Rutas y entregas
 
-## Módulo 4 implementado
+Proyecto de clase en React y TypeScript. Conserva el flujo comercial, las compras, el inventario, las finanzas, los reportes y la plantilla Excel. Añade cuentas compartidas, seguimiento GPS entre dos dispositivos, simulación y repetición. El ZIP mejorado incluye el código editable y las instrucciones de instalación. No incluye un `dist` antiguo: se debe generar una nueva compilación después de instalar las dependencias.
 
-Consulta [docs/MODULO_4_INVENTARIO.md](docs/MODULO_4_INVENTARIO.md) para la guía de ejecución, estructura, funciones y validaciones de inventario.
+## Abrir en VS Code
 
-# ERP Comercial Perú
-
-**ERP demostrativo de una comercializadora peruana de tecnología y seguridad.** Incluye gestión comercial, inventarios, finanzas, compras (estructura base) y administración del entorno, todo con operaciones simuladas en **soles (PEN)**.
-
-> **Importante:** es un prototipo académico sin backend. Las credenciales son públicas, el control de accesos se realiza solamente en React, el historial es local y la infraestructura cloud es una simulación. **No usar con información real ni para operaciones tributarias o bancarias.**
-
-## Ejecutar en VS Code
-
-Necesitas **Node.js 20.19+ o 22.12+**, npm y un navegador actualizado.
+1. Extrae el ZIP completo y abre en VS Code la carpeta que contiene `package.json`.
+2. Instala **Node.js 24 o posterior**. En la terminal de VS Code ejecuta:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Abre la URL de Vite indicada en la terminal (normalmente `http://localhost:5173`). Para verificar:
+3. Abre [http://localhost:5173](http://localhost:5173). Mantén abierta la terminal. La primera ejecución crea el archivo SQLite de cuentas y entregas. En Windows también puedes iniciar con **`INICIAR_ERP.bat`** (instala dependencias si hacen falta).
+4. Para comprobar pruebas y crear un despliegue local, ejecuta `npm test` y `npm run build`. Después de compilar, `npm start` sirve los archivos nuevos de `dist`.
+5. En el aula, si ya tenías un estado vacío guardado en este navegador, entra como administrador a **Datos maestros → Restaurar escenario**. Si era una instalación nueva, los mocks se cargan al iniciar la organización AULA.
 
-```bash
-npm run build
-npm test
-```
+[Consulta la guía completa de mejoras, límites y ejemplos del asistente](MEJORAS_REALIZADAS.md).
 
-`package-lock.json` se conserva; puedes usar `npm ci` en lugar de `npm install` cuando tengas acceso al registro de npm. El proyecto incluye Bootstrap 5.3.6 CSS local, sin depender de un CDN de Bootstrap.
+## Demostración en dos minutos
 
-## Credenciales de ejemplo
-
-| Cuenta de demostración | Contraseña | Acceso visual |
+| Paso | Persona 1 · Repartidor | Persona 2 · Monitor |
 | --- | --- | --- |
-| admin@enterprisecloud.demo | Admin123! | Todos los módulos |
-| ventas@enterprisecloud.demo | Ventas123! | Comercial |
-| almacen@enterprisecloud.demo | Almacen123! | Inventario |
-| finanzas@enterprisecloud.demo | Finanzas123! | Finanzas y reportes |
+| Entrar | En una ventana normal, elige **Repartidor** y pulsa **Iniciar sesión**. | En una ventana privada u otro navegador, elige **Monitor** e inicia sesión. |
+| Salir | En **Rutas y entregas**, selecciona una entrega de ejemplo y pulsa **Iniciar simulación**, o crea una con coordenadas A/B nuevas. | Selecciona esa misma entrega. El vehículo y la hora cambian a medida que llegan posiciones. |
+| Llegar | Al finalizar los puntos de la simulación se marca la llegada a B. | Pulsa **Reproducir recorrido**. Prueba la velocidad, pausa y arrastra la barra a un punto anterior. |
+| Repetir la práctica | **Nueva entrega → Simulación** permite asignar otra y seleccionar puntos A/B reales. Para dos coordenadas personalizadas, la línea es ilustrativa y recta, no una ruta calculada por calles. | La nueva entrega aparece al quedar asignada a tu cuenta. |
 
-Las cuentas se conservan con sus identificadores originales por compatibilidad con las sesiones previamente guardadas. **No son cuentas seguras.** El usuario se guarda en `sessionStorage` o `localStorage` según marque «Mantener sesión».
+Dos pestañas del mismo perfil comparten la cookie de sesión. Utiliza perfiles de navegador independientes para representar a las dos personas. Las ventanas privadas del mismo navegador también pueden compartir sesión entre sí.
 
-## Funcionalidades
+## GPS real desde el celular
 
-### Áreas comerciales, inventario y finanzas — se conservan
+1. Sirve **una sola instancia** del ERP. Ambos dispositivos deben abrir la misma dirección. Utiliza una dirección HTTPS con un certificado de confianza en el teléfono.
+2. En **Nueva entrega → GPS real**, elige al repartidor y al monitor. Configura A y B para tu instituto. Puedes tocar el mapa, escribir latitud y longitud o usar la ubicación del dispositivo para el punto seleccionado. Los dos lugares que ofrece inicialmente el formulario son ejemplos.
+3. La cuenta del repartidor pulsa **Iniciar y compartir mi GPS**, concede el permiso y mantiene esa pantalla abierta. El monitor recibe posiciones y puede ver su hora y precisión. La línea continua une lecturas recibidas. La discontinua une A y B como referencia.
+4. **Pausar mi GPS** detiene el envío. **Reanudar mi GPS** vuelve a solicitar lecturas. Al salir de la pantalla se libera el observador. Si se corta la red, el monitor conserva la última posición y la marca como antigua tras 45 segundos.
+5. Al llegar, el repartidor pulsa **Confirmar llegada**. Se exige una lectura de menos de dos minutos, con precisión de hasta 100 m y a menos de 150 m de B. Usa **Cancelar entrega** si termina en otro lugar. Los puntos ya guardados quedan disponibles para repetición.
 
-- **Comercial:** clientes, cotizaciones, pedidos, ventas, comprobantes PDF sin validez SUNAT, pasarela simulada de cobros, pagos aprobados/rechazados y devoluciones.
-- **Inventario:** productos, categorías, almacenes, existencias, kardex, transferencias y ajustes. Registros con referencias asociadas a operaciones.
-- **Finanzas:** saldos de cuentas por cobrar, ingresos, egresos, caja/bancos conceptuales, gráficos, indicadores y siete informes descargables en PDF/Excel.
-- **Integraciones opcionales:** Frankfurter para tipo de cambio de referencia USD/PEN y Nager.Date para feriados del Perú; no cambian importes del ERP.
-- **Compras y documentos:** mantenimiento CRUD de proveedores, órdenes de compra de ejemplo y pantalla documental de base. La recepción física de compras, pagos a proveedores, facturas de compra y repositorio general de documentos todavía **no están implementados**.
+### HTTPS en la red del instituto
 
-### Administración y apariencia — actualización de la Persona 1
+Ejemplo para una PC con IP de red **192.168.1.20**. Sustituye la IP por la de tu equipo. Un administrador de la red también puede proporcionar una dirección HTTPS con un certificado ya aceptado por ambos celulares.
 
-- **Identidad propia:** nombre «ERP Comercial Perú», nuevo logotipo con referencia visual peruana, favicon y marca coherente en login, navegación y cabeceras de exportación.
-- **Navegación:** ciclo comercial visible en orden, submódulos maestros dentro de **Mantenimiento**, grupos plegables sin tarjetas redundantes, búsqueda y atajo `Ctrl + K`, colapso de secciones, menú móvil, estados activos y barra lateral con scroll oscuro independiente.
-- **Carga e interacción:** páginas cargadas de forma diferida (`React.lazy`/`Suspense`), esqueletos mientras se importan, transiciones de entrada, microinteracciones y estados ocupados en simulación cloud; adaptación a `prefers-reduced-motion`.
-- **Perfil:** datos del usuario, rol y matriz informativa de accesos.
-- **Configuración:** edición validada de razón social, nombre comercial, RUC ficticio, contacto y ciudad; moneda y zona horaria Perú; restauración de datos de muestra con diálogo de confirmación. Los cambios permanecen en el navegador.
-- **Registro de actividad:** combina movimientos de negocio existentes con nuevos eventos locales de inicio/cierre de sesión, cambios de configuración e infraestructura; búsqueda, filtros y exportación CSV.
-- **Infraestructura simulada:** representación conceptual de aplicación, base de datos, archivos e identidad, activación/desactivación de estados ficticios, resumen, persistencia local y cronología de interacciones. **No hay despliegues ni métricas AWS reales.**
-- **Tema claro/oscuro** persistente por navegador y componentes Bootstrap que respetan la identidad actual.
+1. Instala `mkcert` en la PC y ejecuta los siguientes comandos en la carpeta del ERP.
 
-## Estructura para continuar el trabajo
-
-```text
-public/
-  brand/                     Logo y favicon propios
-  logos/                     Logos de los métodos de pago originales
-src/
-  App.tsx                    Composición de módulos y carga diferida
-  layout/
-    navigation.ts            ÚNICA fuente de grupos/menús
-    Sidebar.tsx              Menú y búsqueda independientes
-  core/
-    permissions.ts           Reglas de visibilidad por rol (solo demo)
-    store.tsx                Estado local compartido, sesión, datos de administración
-    types.ts / seed.ts       Modelos y semillas existentes
-    operations.ts            Reglas de negocio existentes (no modificadas)
-    export.ts                PDF y Excel; rótulos de la nueva marca
-  features/administration/
-    model.ts                 Contratos de configuración, cloud y eventos
-    storage.ts               Lectura/validación de datos mock persistidos
-  pages/
-    Administration.tsx       Perfil, ajustes, auditoría y cloud
-    Commerce.tsx             Comercial; modificar aquí las tareas comerciales
-    Inventory.tsx            Inventario; modificar aquí las tareas de almacén
-    Finance.tsx              Finanzas
-    Reports.tsx              Reportes
-    Extensions.tsx           APIs y extensiones de compras/documentos
-  components/ui.tsx          Elementos comunes existentes
-  components/RecordPicker.tsx  Buscador modal paginado para entidades
-  components/PaginatedTable.tsx Tablas de consulta con 10/20/50 filas
-  components/WorkflowGuide.tsx  Ruta de cotización a cobro
-  components/SupplierMaintenance.tsx CRUD local de proveedores
-  styles.css                Diseño de módulos original
-  styles/administration.css  Shell, logo, scrollbar y diseño administrativo
-  styles/enterprise-theme.css Tokens y unificación azul acero/celeste
-  vendor/bootstrap.min.css  Bootstrap local
+```sh
+mkcert -install
+mkdir certs
+mkcert -cert-file certs/aula.pem -key-file certs/aula-key.pem localhost 127.0.0.1 192.168.1.20
 ```
 
-**Regla para integrarse sin romper funciones:** mantener los contratos de `core/types.ts` y llamar a `update(prev => operacionPura(prev, ...))` para cambios de negocio. No modificar operaciones de otros módulos sin acordarlo en equipo. Para agregar módulos al menú, editar `src/layout/navigation.ts` y actualizar el sistema de permisos en `src/core/permissions.ts`. Para nuevas pantallas administrativas, editar `src/pages/Administration.tsx` y sus contratos independientes.
+2. Copia `.env.example` a `.env`. Configura estas cuatro líneas.
 
-Ver `docs/ARQUITECTURA.md`, `docs/INTEGRACION_COMPANEROS.md`, `docs/VERIFICACION.md` y `docs/CAMBIOS_ADMINISTRACION.md`.
+```dotenv
+HOST=0.0.0.0
+TLS_CERT_FILE=certs/aula.pem
+TLS_KEY_FILE=certs/aula-key.pem
+APP_ORIGIN=https://192.168.1.20:5173
+```
 
-## Persistencia y precauciones
+3. Con un certificado de aula, instala **solo el certificado público** `rootCA.pem` de `mkcert -CAROOT` en los dispositivos de prueba y activa su confianza según el sistema. La clave `rootCA-key.pem` permanece privada en la PC. Autoriza el puerto 5173 en el perfil de red privada del cortafuegos.
+4. Reinicia con `npm start`. En **ambos** dispositivos abre **https://192.168.1.20:5173**. El teléfono debe alcanzar la PC por esa red durante todo el recorrido. Para una ruta fuera del Wi-Fi del instituto, publica la instancia de prueba detrás de una dirección HTTPS accesible desde datos móviles.
+5. Para practicar en una sola PC, `localhost` admite la geolocalización del navegador. El modo simulado funciona aunque el equipo carezca de GPS. La web necesita permanecer en primer plano para una captura fiable.
 
-Los registros de negocio mantienen `enterprisecloud_erp_v2` versión 2: **no se borran automáticamente** al instalar estos cambios. Las claves nuevas `erp_pe_admin_settings_v1`, `erp_pe_cloud_demo_v1` y `erp_pe_events_demo_v1` están separadas para no alterar los datos de ventas, compras e inventario existentes. No hay migraciones de backend.
+Los permisos se solicitan al repartidor cuando decide compartir. El mapa usa Leaflet y cartografía OpenStreetMap sin clave. Las calles requieren Internet. Si falta conectividad con el proveedor de mapas, la simulación incluye un plano ilustrativo local y el modo GPS conserva marcadores y traza. [Geolocalización en MDN](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition) · [mkcert](https://github.com/FiloSottile/mkcert) · [Política de mapas OSM](https://operations.osmfoundation.org/policies/tiles/)
 
-Hay 30 clientes, 40 productos, 4 almacenes, 50 ventas y 25 pedidos ficticios. Las cotizaciones y pedidos no reservan inventario: el stock se descuenta al concretar la venta. Una devolución puede exigir conciliación de cobros aparte; los datos financieros no representan contabilidad formal ni validez tributaria SUNAT. LocalStorage no garantiza transacciones multiusuario ni integridad de auditoría.
+## Cuentas y asignación
 
-## Actualización: interfaz empresarial unificada (octubre 2026)
+Organización inicial **AULA**. Las credenciales siguientes se crean únicamente en modo de demostración.
 
-- **Sidebar por flujo:** Inicio → Ciclo comercial → Compras → Inventario → Finanzas → Mantenimiento → Sistema. Solo se expanden inicialmente Inicio y Ciclo comercial; la sección activa se abre automáticamente. Se eliminó el bloque duplicado «Espacio de demostración» del sidebar, pero se mantiene la indicación de demo en la cabecera.
-- **Mantenimiento:** Clientes, Productos, Categorías, Proveedores y Almacenes tienen ubicaciones fijas dentro de su grupo. Proveedores ahora permite registro, edición y eliminación condicionada a ausencia de relaciones.
-- **Modal de selección:** en Cotizaciones, Pedidos, Ventas, Cobros, Devoluciones y formularios de inventario se muestran registros principales con búsqueda textual y paginación de 10/20/50 filas. Después de elegir, se resumen los atributos relevantes. Los controles de listas cortas (estado, segmento, tipo de operación) siguen usando select.
-- **Listados paginados:** tablas comerciales, finanzas, compras simuladas, auditoría, reportes e inventario. Los reportes exportan el conjunto completo de filas filtradas, independientemente de la página visible.
-- **Guía operativa:** navegación paso a paso Cotización → Pedido → Venta → Comprobante → Cobro. Los enlaces respetan la visibilidad de las rutas por rol. Los botones ya existentes que convierten cotizaciones y pedidos siguen ejecutando la lógica original.
-- **Tema:** azul acero / celeste desaturado en claro y oscuro, incluidas páginas de inventario antes moradas. Los estados de error/advertencia y los logotipos de pasarelas siguen teniendo semántica y reconocimiento propios.
+| Perfil | Correo | Contraseña |
+| --- | --- | --- |
+| Administración | admin@enterprisecloud.demo | Admin123! |
+| Repartidor | repartidor@enterprisecloud.demo | Ruta1234! |
+| Monitor | monitor@enterprisecloud.demo | Mapa1234! |
+| Comercial | ventas@enterprisecloud.demo | Ventas123! |
+| Inventario | almacen@enterprisecloud.demo | Almacen123! |
+| Finanzas | finanzas@enterprisecloud.demo | Finanzas123! |
 
-**Alcance técnico:** paginación y búsqueda en el navegador sobre datos locales, apropiada para esta demo. Con cientos de miles de registros y uso multiusuario se necesitarán consultas paginadas y filtros en un backend con base de datos. El proyecto conserva simulación de pagos, comprobantes no SUNAT y roles visuales; no se añaden backend, autenticación real ni facturación electrónica.
+Para tus propias cuentas, entra como administrador y abre **Sistema → Usuarios y roles → Nuevo usuario**. Crea una cuenta de cada rol logístico y selecciónalas en la entrega. El monitor ve las entregas que tiene asignadas. Administración puede supervisar la organización y el comercial puede consultar los despachos que coordinó. Un repartidor comparte GPS únicamente en su propia entrega.
 
+Desde **Pedidos**, pulsa **Ver o asignar entrega**. El coordinador puede crear el despacho o abrir el existente. La referencia se conserva en el servidor aunque el monitor use otro equipo. Llegar a B registra un evento logístico. La venta, el comprobante y el cobro continúan por su propio flujo.
 
-## Mejora: módulos comerciales conectados (octubre 2026)
+## Asistente y analítica
 
-Se mantiene el **menú original** de Cotizaciones, Pedidos, Ventas, Comprobantes, Cobros y Postventa; también se preservan sus formularios, tablas y el resto del ERP. Ya no se redirigen las seis rutas a un único formulario guiado.
+| Escribe | Qué ocurre |
+| --- | --- |
+| «Crea una entrega simulada» | Prepara una propuesta con dos participantes. Al confirmar se crea una entrega. Si hay varias personas posibles, pide identificar sus nombres o abre el formulario. |
+| «Ver mis rutas» | Consulta los conteos del servidor y abre las entregas visibles para tu perfil. |
+| «Confirma el pedido PED-…» | Usa el ID completo de un pedido pendiente de este navegador. Revisa el cambio y confírmalo. «Prepara el pedido PED-…» avanza uno confirmado. |
+| «Consultar saldos» o «Consultar stock» | Devuelve indicadores de los módulos que tu perfil puede consultar. |
+| «Cotiza 2 EC-0001 para CLI-001» | Consulta el producto y el cliente existentes y propone una cotización para confirmar. |
+| «Registrar cliente: Comercial Aurora SAC \| 20123456789 \| ventas@aurora.pe» | Prepara un cliente nuevo tras revisar DNI/RUC y duplicados. Confirma antes de guardar. |
+| «Registrar producto: Mouse óptico \| MOU-100 \| 45 \| 25 \| Periféricos» | Propone crear un producto con precio y costo; inventario inicial cero. |
 
-Flujo enlazado:
-1. Cotizaciones: crear oferta, confirmar aceptación y generar automáticamente el pedido; se abre su módulo.
-2. Pedidos: el pedido recuerda el cliente, los productos y la cotización de origen; «Preparar venta» abre Ventas sin reingresar datos.
-3. Ventas: validar almacén, confirmar la venta y descontar inventario; se abre Comprobantes.
-4. Comprobantes: PDF de demostración y botón «Ir a cobro» para esa venta.
-5. Cobros: venta preseleccionada, confirmación del método simulado y saldo recalculado.
-6. Devoluciones: pantalla original independiente con vínculo a venta e inventario.
+Los comandos anteriores funcionan sin proveedor externo. Para preguntas abiertas, añade `GEMINI_API_KEY` y, si corresponde, `GEMINI_MODEL` a `.env` y reinicia Node. El servidor envía la pregunta, el rol y conteos permitidos. Las posiciones y las fichas de clientes quedan fuera del contexto automático. La clave permanece en el servidor. El servicio externo depende del modelo y de la cuota de tu cuenta.
 
-El asistente flotante funciona desde todos los módulos. Sin backend se comporta como guía local; Gemini es opcional mediante `server/assistant.mjs` y la configuración descrita en `.env.example`. No ejecutar pagos ni acciones de escritura desde el asistente. Datos locales de demostración, sin comprobantes SUNAT reales.
+En **Dashboard ejecutivo**, los perfiles con acceso a reportes pueden abrir el cálculo de las ventas y el flujo de caja estimados para el mes. Se muestran los tres meses de base y se indica cuándo faltan registros.
 
-## Actualización — módulos comerciales, etapas 2–4
+## Qué se comparte
 
-La separación de Cotizaciones, Pedidos, Ventas, Comprobantes, Cobros y Devoluciones, el editor de múltiples productos, estados documentales y pruebas de regresión se describen en [`docs/ETAPAS_2_3_4_COMERCIAL.md`](docs/ETAPAS_2_3_4_COMERCIAL.md). Se conserva `State.version = 2` y la misma clave de almacenamiento local.
+| Datos | Dónde se guardan | Alcance |
+| --- | --- | --- |
+| Cuentas, sesiones, entregas, posiciones, propuestas y auditoría de acceso | `data/aula.sqlite` en la PC que sirve el ERP | Compartidos entre los dispositivos conectados a la misma instancia. |
+| Catálogos, compras, ventas, inventario, finanzas, adjuntos y configuración del prototipo | Almacenamiento del navegador, por organización y origen | Para recuperar el trabajo anterior usa el mismo navegador, dirección y puerto. La organización AULA utiliza la clave comercial histórica. |
+| Preferencia de tema | Navegador | Sigue al sistema hasta que el usuario elige manualmente un tema. |
 
-## Mejora de catálogo comercial: varios productos en un solo paso
+Las cuentas personalizadas de la versión anterior se recrean desde **Usuarios y roles**. Las contraseñas antiguas guardadas por el navegador no se importan en el servidor. Una instalación nueva puede cargar `public/plantillas/ERP_Datos_Importacion.xlsx` en **Datos maestros**. Para respaldar la base de aula, detén Node limpiamente y copia la carpeta `data` completa. Para recuperar ese respaldo, restaura la carpeta con el servicio detenido.
 
-Cotizaciones, Pedidos y Ventas directas admiten un diálogo de selección múltiple que conserva la selección entre páginas. El usuario puede agregar varias líneas con cantidades independientes y editarlas luego en el documento. Véase [`docs/MEJORA_SELECCION_MULTIPLE_COMERCIAL.md`](docs/MEJORA_SELECCION_MULTIPLE_COMERCIAL.md).
+## Documentación técnica
+
+- [Arquitectura en cinco capas, flujo de datos y guía de evolución](docs/ARQUITECTURA.md)
+- [Esquema ejecutable de Inventario y Finanzas para PostgreSQL](database/postgresql.sql)
+- [Pruebas, límites de la entrega y verificación en clase](docs/VERIFICACION.md)
+- [Importación de la plantilla Excel](LEEME_IMPORTACION.md)
+
+Las notas recibidas con el proyecto se conservan en `docs/historico`. Este README y [MEJORAS_REALIZADAS.md](MEJORAS_REALIZADAS.md) describen la versión mejorada. La compilación del frontend debe ejecutarse localmente tras `npm ci`.

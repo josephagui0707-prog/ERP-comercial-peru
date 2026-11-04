@@ -1,3 +1,4 @@
+import SharedAudit from '../features/administration/SharedAudit';
 import UsersManagement from './UsersManagement';
 import {PaginatedTable} from '../components/PaginatedTable';
 import {useEffect,useMemo,useRef,useState} from 'react';
@@ -15,10 +16,10 @@ import type {AdminSettings,CloudServiceId,EventCategory,SystemEvent} from '../fe
 import type {Audit} from '../core/types';
 
 const SECTIONS:Record<string,{title:string;eyebrow:string;subtitle:string}>={
-  usuarios:{title:'Usuarios y roles',eyebrow:'ADMINISTRACIÓN',subtitle:'Gestiona las cuentas que pueden acceder a esta demostración local.'},
+  usuarios:{title:'Usuarios y roles',eyebrow:'ADMINISTRACIÓN',subtitle:'Crea y administra cuentas compartidas de tu organización.'},
   perfil:{title:'Mi perfil',eyebrow:'MI CUENTA',subtitle:'Información de la sesión y los permisos disponibles.'},
   configuracion:{title:'Configuración del sistema',eyebrow:'ADMINISTRACIÓN',subtitle:'Personaliza los datos de muestra y gestiona el entorno local.'},
-  auditoria:{title:'Registro de actividad',eyebrow:'CONTROL Y TRAZABILIDAD',subtitle:'Historial de acciones en este navegador. No es una auditoría de seguridad real.'},
+  auditoria:{title:'Registro de actividad',eyebrow:'CONTROL Y TRAZABILIDAD',subtitle:'Cuentas y entregas del servidor, junto con los movimientos comerciales de este navegador.'},
   cloud:{title:'Centro de infraestructura',eyebrow:'SIMULACIÓN CLOUD',subtitle:'Explora la arquitectura conceptual y prueba estados de servicios sin recursos externos.'},
 };
 const ICONS:Record<CloudServiceId,typeof Server>={compute:Server,database:Database,storage:HardDrive,identity:KeyRound};
@@ -32,6 +33,7 @@ export default function Administration({section}:{section:string}){
     {section==='usuarios'&&<UsersManagement/>}
     {section==='perfil'&&<Profile/>}
     {section==='configuracion'&&<Configuration/>}
+    {section==='auditoria'&&<SharedAudit/>}
     {section==='auditoria'&&<AuditTrail/>}
     {section==='cloud'&&<CloudConsole/>}
   </div>;
@@ -43,19 +45,20 @@ function Profile(){
     <Panel title="Información de la cuenta"><div className="account-overview"><div className="account-symbol"><UserRound size={28}/></div>
       <div><h2>{user.name}</h2><p>{user.email}</p><span className="admin-tag"><ShieldCheck size={13}/> {ROLE_NAMES[user.role]}</span></div>
     </div><div className="admin-facts"><div><span><Mail size={15}/> Identificador</span><strong>{user.email}</strong></div>
-      <div><span><LockKeyhole size={15}/> Tipo de acceso</span><strong>Cuenta de demostración</strong></div>
+      <div><span><LockKeyhole size={15}/> Tipo de acceso</span><strong>Cuenta de la organización</strong></div>
       <div><span><Globe2 size={15}/> Zona horaria</span><strong>{settings.timeZone}</strong></div>
-      <div><span><Monitor size={15}/> Persistencia</span><strong>Almacenamiento del navegador</strong></div>
+      <div><span><Monitor size={15}/> Persistencia</span><strong>Rutas en servidor · comercio en navegador</strong></div>
     </div></Panel>
     <Panel title="Alcance de la cuenta"><p className="admin-description">Este perfil permite explorar los siguientes espacios dentro de la demostración.</p>
       <div className="role-permissions">{[
+        {label:'Rutas y entregas',role:['admin','ventas','repartidor','monitor'],text:'Asignación, mapa e historial de recorridos'},
         {label:'Gestión comercial',role:['admin','ventas'],text:'Clientes, cotizaciones, pedidos y cobros'},
         {label:'Gestión de inventario',role:['admin','almacen'],text:'Productos, almacenes y movimientos'},
         {label:'Gestión financiera',role:['admin','finanzas'],text:'Cuentas, indicadores y reportes'},
         {label:'Administración del ERP',role:['admin'],text:'Usuarios, configuración y registro de actividad'},
       ].map(p=><div key={p.label}className="permission-row"><span className="permission-check">{p.role.includes(user.role)?<Check size={16}/>:<X size={16}/>}</span>
         <span><b>{p.label}</b><small>{p.text}</small></span><span className="ms-auto"><Badge value={p.role.includes(user.role)?'Habilitado':'Sin acceso'}/></span></div>)}</div>
-    </Panel><div className="admin-hint"><Info size={18}/> <span>Los perfiles y contraseñas son ficticios. Las restricciones de interfaz no sustituyen un servidor de autenticación y autorización.</span></div>
+    </Panel><div className="admin-hint"><Info size={18}/> <span>El servidor verifica tu identidad y limita las entregas según tu rol y asignación. Los registros comerciales de esta versión pertenecen al navegador.</span></div>
   </>;
 }
 function Configuration(){

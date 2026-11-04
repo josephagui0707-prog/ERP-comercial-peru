@@ -1,4 +1,4 @@
-export type Role='admin'|'ventas'|'almacen'|'finanzas';
+export type Role='admin'|'ventas'|'almacen'|'finanzas'|'repartidor'|'monitor';
 export type Client={id:string;name:string;document:string;email:string;phone:string;segment:string;active:boolean};
 export type Product={id:string;sku:string;name:string;category:string;price:number;cost:number;min:number;active:boolean;brand?:string;model?:string;features?:string;supplierId?:string;stockReference?:number;archivedAt?:string};
 export type Warehouse={id:string;name:string;city:string;kind?:string;address?:string;district?:string;department?:string;ubigeo?:string;manager?:string;phone?:string;email?:string;status?:'Activo'|'Inactivo'|'En mantenimiento'};
@@ -19,7 +19,8 @@ export type InventoryDocument={id:string;name:string;kind:string;mime:string;siz
 export type State={version:2;inventoryRevision?:number;inventoryDocuments?:InventoryDocument[];categories?:string[];clients:Client[];products:Product[];warehouses:Warehouse[];inventory:Inventory[];quotes:Quote[];orders:Order[];sales:Sale[];payments:Payment[];returns:Return[];movements:Movement[];expenses:Expense[];suppliers:Supplier[];purchases:Purchase[];audit:Audit[]};
 export const sumItems=(items:Item[])=>Math.round(items.reduce((s,i)=>s+i.qty*i.price*(1-i.discount/100),0)*100)/100;
 export const money=(v:number)=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(v);
-export const today=()=>new Date().toISOString().slice(0,10);
+const peruDate=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'});
+export const today=(at:Date=new Date())=>peruDate.format(at);
 export const uid=(prefix:string)=>`${prefix}-${globalThis.crypto?.randomUUID?.().slice(0,8)??Math.random().toString(36).slice(2,10)}`.toUpperCase();
 export const IGV_RATE=0.18;
 export const calcBase=(total:number)=>Math.round(total/1.18*100)/100;

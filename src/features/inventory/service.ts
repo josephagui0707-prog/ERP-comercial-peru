@@ -17,8 +17,9 @@ export function saveProduct(state:State,data:Product,editing=false):State {
   const s=structuredClone(state),existing=s.products.find(p=>p.id===data.id);
   assert(editing?!!existing:!existing,editing?'Producto inexistente.':'El ID ya existe. Cierra el formulario y crea el producto nuevamente.');
   assert(!existing?.archivedAt,'No se puede modificar un producto archivado.');
-  const p={...data,name:data.name.trim(),sku:existing?.sku??data.id,active:true,min:existing?.min??0,stockReference:existing?.stockReference??0};
-  assert(p.name&&p.id&&categoriesOf(s).includes(p.category),'Completa nombre y categoría.');
+  const p={...data,name:data.name.trim(),sku:existing?.sku??data.sku.trim().toUpperCase(),active:true,min:existing?.min??0,stockReference:existing?.stockReference??0};
+  assert(p.name&&p.id&&p.sku&&categoriesOf(s).includes(p.category),'Completa nombre, SKU y categoría.');
+  assert(!s.products.some(x=>x.id!==p.id&&x.sku.toLowerCase()===p.sku.toLowerCase()),'Este SKU ya pertenece a otro producto.');
   assert(Number.isFinite(p.price)&&p.price>=0&&Number.isFinite(p.cost)&&p.cost>=0,'Precio y costo deben ser números no negativos.');
   assert(!p.supplierId||s.suppliers.some(x=>x.id===p.supplierId),'Proveedor no disponible.');
   if(editing)s.products[s.products.findIndex(x=>x.id===p.id)]=p;

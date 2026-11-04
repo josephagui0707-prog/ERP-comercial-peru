@@ -2,12 +2,13 @@ import {lazy,Suspense,useCallback,useEffect,useState} from 'react';
 import {Navigate,NavLink,useLocation} from 'react-router-dom';
 import {Menu,Moon,Sun} from 'lucide-react';
 import {useStore} from './core/store';
-import {allowed,ROLE_NAMES} from './core/permissions';
+import {allowed,ROLE_NAMES,homeFor} from './core/permissions';
 import {ALL_MODULES,ADMIN_SECTIONS,COMMERCE_SECTIONS,FINANCE_SECTIONS,INVENTORY_SECTIONS} from './layout/navigation';
 import Sidebar from './layout/Sidebar';
 import ERPAssistant from './components/ERPAssistant';
 import Login from './pages/Login';
 
+const Tracking=lazy(()=>import('./features/tracking/Tracking'));
 const MasterData=lazy(()=>import('./pages/MasterData'));
 const Purchases=lazy(()=>import('./pages/Purchases'));
 const Dashboard=lazy(()=>import('./pages/Dashboard'));
@@ -19,11 +20,12 @@ const Extensions=lazy(()=>import('./pages/Extensions'));
 const Administration=lazy(()=>import('./pages/Administration'));
 
 type Theme='light'|'dark';
-function getTheme():Theme{try{return localStorage.getItem('erp-theme')==='light'?'light':'dark';}catch{return 'dark';}}
+function getTheme():Theme{try{const t=localStorage.getItem('erp-theme');if(t==='light'||t==='dark')return t;}catch{}return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
 function PageLoader(){return <div className="route-loader"role="status"aria-live="polite"><span className="visually-hidden">Cargando módulo...</span>
   <div className="route-loader-head"><i/><i/></div><div className="route-loader-cards"><i/><i/><i/><i/></div><div className="route-loader-wide"/>
 </div>;}
 function Content({section}:{section:string}){
+  if(section==='rutas')return <Tracking/>;
   if(section==='datos-maestros')return <MasterData/>;
   if(section==='compras'||section==='documentos')return <Purchases documents={section==='documentos'}/>;
   if(section==='inicio')return <Dashboard/>;
@@ -42,8 +44,14 @@ export default function App(){
   const [theme,setTheme]=useState<Theme>(getTheme);
   useEffect(()=>{
     document.documentElement.setAttribute('data-bs-theme',theme);
-    try{localStorage.setItem('erp-theme',theme);}catch{/* tema usable en memoria */}
+
   },[theme]);
+  useEffect(()=>{
+    const media=matchMedia('(prefers-color-scheme: dark)');
+    const change=()=>{try{if(!localStorage.getItem('erp-theme'))setTheme(media.matches?'dark':'light');}catch{setTheme(media.matches?'dark':'light');}};
+    media.addEventListener('change',change);return()=>media.removeEventListener('change',change);
+  },[]);
+  const changeTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);try{localStorage.setItem('erp-theme',next);}catch{}};
   useEffect(()=>{closeSidebar();},[location.pathname,closeSidebar]);
   useEffect(()=>{
     if(!sidebarOpen)return;
@@ -53,7 +61,7 @@ export default function App(){
   const section=location.pathname.split('/')[1]||'inicio';
   if(!user)return <Login/>;
   if(section==='cloud')return <Navigate to={user.role==='admin'?'/integraciones?tab=cloud':'/integraciones'} replace/>;
-  if(!allowed(user.role,section)||!ALL_MODULES.some(item=>item.path===section))return <Navigate to="/inicio"replace/>;
+  if(!allowed(user.role,section)||!ALL_MODULES.some(item=>item.path===section))return <Navigate to={homeFor(user.role)} replace/>;
   const page=ALL_MODULES.find(item=>item.path===section);
   return <div className="shell bootstrap-erp">
     <Sidebar open={sidebarOpen}onClose={closeSidebar}/>
@@ -61,9 +69,9 @@ export default function App(){
       <header className="topbar border-bottom"><div className="topbar-start">
         <button type="button"className="mobile-menu btn"onClick={()=>setSidebarOpen(true)}aria-label="Abrir menú"><Menu size={21}/></button>
         <div className="breadcrumb"><span className="breadcrumb-company">{settings.tradeName}</span><span>/</span><b>{page?.label}</b></div>
-      </div><div className="top-right"><span className="environment-label"><span className="status-dot">Demo local</span></span>
+      </div><div className="top-right"><span className="environment-label"><span className="status-dot">{section==='rutas'?'Seguimiento compartido':'ERP · '+user.tenant}</span></span>
         <button type="button"className="btn btn-sm btn-outline-secondary theme-switch"title={theme==='dark'?'Activar tema claro':'Activar tema oscuro'}
-          aria-label={theme==='dark'?'Activar tema claro':'Activar tema oscuro'}onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>
+          aria-label={theme==='dark'?'Activar tema claro':'Activar tema oscuro'}onClick={changeTheme}>
           {theme==='dark'?<Sun size={17}/>:<Moon size={17}/>}</button>
         <span className="top-role">{ROLE_NAMES[user.role]}</span>
         <NavLink to="/perfil"className="avatar-mini"aria-label="Ver mi perfil">{user.name[0]}</NavLink>

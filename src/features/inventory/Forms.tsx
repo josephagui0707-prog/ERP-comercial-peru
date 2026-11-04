@@ -3,7 +3,7 @@ import {useRef,useState} from 'react';
 import type {ReactNode} from 'react';
 import type {Product,State,Warehouse,InventoryDocument} from '../../core/types';
 import {uid,money} from '../../core/types';
-import {useStore,demoAccounts} from '../../core/store';
+import {useStore} from '../../core/store';
 import {stockOf} from '../../core/operations';
 import {Modal} from './Modal';
 import {ThirdPartyPicker} from './ThirdPartyPicker';
@@ -48,7 +48,7 @@ export function CategoryForm({previous,onClose,onSaved}:{previous?:string;onClos
 }
 const warehouseKinds=['Almacén Principal / Central','Sucursal / Tienda','Tránsito / En Ruta','Merma / Producto Defectuoso','Almacén Virtual / e-Commerce'];
 export function WarehouseForm({warehouse,onClose,onSaved}:{warehouse?:Warehouse;onClose:()=>void;onSaved:()=>void}) {
-  const {update}=useStore(),[draft,setDraft]=useState<Warehouse>(warehouse??{id:uid('ALM'),name:'',city:'',kind:warehouseKinds[0],status:'Activo'});
+  const {update,users}=useStore(),[draft,setDraft]=useState<Warehouse>(warehouse??{id:uid('ALM'),name:'',city:'',kind:warehouseKinds[0],status:'Activo'});
   const set=<K extends keyof Warehouse>(key:K,value:Warehouse[K])=>setDraft({...draft,[key]:value});
   return <Editor title={warehouse?'Editar almacén':'Nuevo almacén'} onClose={onClose} onSave={()=>{update(s=>saveWarehouse(s,draft,!!warehouse));onSaved();}}><div className="inv-fields">
     <label className="field">Código de almacén<input className="form-control" required readOnly={!!warehouse} value={draft.id} onChange={e=>set('id',e.target.value.toUpperCase())}/>{!warehouse&&<button type="button" className="btn mini" onClick={()=>set('id',uid('ALM'))}>Autogenerar código</button>}</label>
@@ -56,7 +56,7 @@ export function WarehouseForm({warehouse,onClose,onSaved}:{warehouse?:Warehouse;
     <label className="field">Tipo de almacén<select className="form-select" value={draft.kind??warehouseKinds[0]} onChange={e=>set('kind',e.target.value)}>{warehouseKinds.map(k=><option key={k}>{k}</option>)}</select></label>
     <label className="field">Estado<select className="form-select" value={draft.status??'Activo'} onChange={e=>set('status',e.target.value as Warehouse['status'])}>{['Activo','Inactivo','En mantenimiento'].map(v=><option key={v}>{v}</option>)}</select></label></div>
     <h3>Ubicación detallada</h3>{textField('Dirección exacta',draft.address??'',v=>set('address',v),true)}<div className="inv-fields">{textField('Distrito',draft.district??'',v=>set('district',v),true)}{textField('Ciudad',draft.city,v=>set('city',v),true)}{textField('Departamento',draft.department??'',v=>set('department',v),true)}{textField('Ubigeo (6 dígitos, opcional)',draft.ubigeo??'',v=>set('ubigeo',v))}</div>
-    <h3>Responsable y contacto</h3><label className="field">Encargado / responsable<select className="form-select" required value={draft.manager??''} onChange={e=>set('manager',e.target.value)}><option value="">Seleccionar usuario</option>{demoAccounts.map(a=><option key={a.email} value={a.email}>{a.name} · {a.email}</option>)}</select></label><div className="inv-fields">{textField('Teléfono / extensión',draft.phone??'',v=>set('phone',v),false,'tel')}{textField('Correo del almacén',draft.email??'',v=>set('email',v),false,'email')}</div><p className="inv-note">Los almacenes inactivos o en mantenimiento conservan sus existencias e historial, pero no permiten movimientos nuevos. El correo es informativo: esta demo no envía notificaciones por email.</p></Editor>;
+    <h3>Responsable y contacto</h3><label className="field">Encargado / responsable<select className="form-select" required value={draft.manager??''} onChange={e=>set('manager',e.target.value)}><option value="">Seleccionar usuario</option>{users.map(a=><option key={a.email} value={a.email}>{a.name} · {a.email}</option>)}</select></label><div className="inv-fields">{textField('Teléfono / extensión',draft.phone??'',v=>set('phone',v),false,'tel')}{textField('Correo del almacén',draft.email??'',v=>set('email',v),false,'email')}</div><p className="inv-note">Los almacenes inactivos o en mantenimiento conservan sus existencias e historial, pero no permiten movimientos nuevos. El correo es informativo: esta demo no envía notificaciones por email.</p></Editor>;
 }
 const transactionDrafts=new Map<string,{draft:Transaction;files:File[];docKind:string}>();
 export function TransactionForm({kind,onClose,onSaved}:{kind:Transaction['kind'];onClose:()=>void;onSaved:()=>void}) {

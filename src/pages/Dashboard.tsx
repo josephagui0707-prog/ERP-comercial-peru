@@ -1,3 +1,4 @@
+import Forecast from '../features/insights/Forecast';
 import {useState} from 'react';
 import { allowed } from '../core/permissions';
 import {
@@ -13,6 +14,9 @@ import {
   TrendingUp,
   Users,
   WalletCards,
+  ArrowRight,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -32,7 +36,7 @@ import { dueOn, stockOf, totals } from '../core/operations';
 import { Panel, Stat, Badge } from '../components/ui';
 
 export default function Dashboard() {
-  const { state: s, user } = useStore();
+  const { state: s, user, loadDemo } = useStore();
   const [period,setPeriod]=useState(1);
   const years=[...new Set(s.sales.map(v=>v.date.slice(0,4)))].sort().reverse();
   const [year,setYear]=useState(years[0]||String(new Date().getFullYear()));
@@ -129,10 +133,27 @@ export default function Dashboard() {
         <div>
           <span className="eyebrow">VISTA GENERAL · DEMOSTRACIÓN</span>
           <h1>Dashboard ejecutivo</h1>
-          <p>Resumen comercial, cobranza e inventario en tiempo real sobre los datos del entorno de demostración.</p>
+          <p>Resumen comercial, cobranza e inventario en tiempo real según los registros de este navegador.</p>
         </div>
         <span className="count">● Ambiente de demostración</span>
       </div>
+
+
+      <section className="erp-welcome" aria-label="Empezar a trabajar">
+        <div className="erp-welcome-main"><span className="erp-welcome-kicker"><Sparkles size={15}/> CENTRO DE OPERACIONES · AULA</span>
+          <h2>Todo el proceso comercial, en un solo lugar.</h2>
+          <p>Crea una propuesta, conviértela en pedido, registra la venta y coordina su entrega. Los registros comerciales se guardan en este navegador.</p>
+          <div className="erp-welcome-actions">
+            {user&&allowed(user.role,'cotizaciones')&&<Link className="btn erp-welcome-primary" to="/cotizaciones?crear=1"><ClipboardList size={17}/> Nueva cotización <ArrowRight size={16}/></Link>}
+            {user&&allowed(user.role,'rutas')&&<Link className="btn erp-welcome-outline" to="/rutas"><ShoppingCart size={17}/> Gestionar entregas</Link>}
+            {user&&allowed(user.role,'datos-maestros')&&<Link className="btn erp-welcome-outline" to="/datos-maestros"><Boxes size={17}/> Datos maestros</Link>}
+          </div>
+        </div>
+        <div className="erp-welcome-guide"><strong>Tu ruta de trabajo</strong>
+          <ol><li><span>01</span>Clientes y productos</li><li><span>02</span>Cotización y aprobación</li><li><span>03</span>Pedido y venta</li><li><span>04</span>Entrega, comprobante y cobro</li></ol>
+          {user?.role==='admin'&&user.tenant==='AULA'&&<button type="button" className="erp-demo-reset" onClick={loadDemo}><RotateCcw size={15}/> Restaurar datos de práctica</button>}
+        </div>
+      </section>
 
       <div className="stats">
         <Stat label="Ventas netas" icon={ChartNoAxesCombined} value={money(t.sales)} hint="Operaciones vigentes" />
@@ -154,6 +175,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {user&&allowed(user.role,'reportes')&&<Forecast/>}
       <div className="two-col">
         <Panel title="Evolución de ventas">
           <div className="dashboard-filters"><label>Agrupar por<select value={period} onChange={e=>setPeriod(Number(e.target.value))}><option value={1}>Mensual</option><option value={3}>Trimestral</option><option value={6}>Semestral</option></select></label><label>Año<select value={year} onChange={e=>setYear(e.target.value)}>{(years.length?years:[year]).map(y=><option key={y}>{y}</option>)}</select></label></div>

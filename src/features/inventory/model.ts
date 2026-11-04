@@ -11,7 +11,7 @@ export const warehouseAvailable=(s:State,id:string)=>s.warehouses.some(w=>w.id==
 export function normalizeInventory(input:State):State {
   const s=structuredClone(input);
   s.inventoryDocuments??=[];
-  for(const p of s.products){p.stockReference=Math.max(p.stockReference??0,stockOf(s,p.id));p.active=!p.archivedAt;}
+  for(const p of s.products){p.stockReference=Math.max(p.stockReference??0,stockOf(s,p.id));if(p.archivedAt)p.active=false;else p.active??=true;}
   for(const w of s.warehouses){w.status??='Activo';w.kind??='Almacén Principal / Central';}
   if((s.inventoryRevision??0)<2){
     // Old demo seed was appended, subsequent operations were prepended. Only

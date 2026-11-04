@@ -1,6 +1,6 @@
 import {useMemo,useRef,useState} from 'react';
 import {NavLink} from 'react-router-dom';
-import {ArrowRight,Database,Download,FileSpreadsheet,Upload,CheckCircle2,AlertTriangle,X} from 'lucide-react';
+import {ArrowRight,Database,Download,FileSpreadsheet,Upload,CheckCircle2,AlertTriangle,X,RotateCcw} from 'lucide-react';
 import {useStore} from '../core/store';
 import {allowed} from '../core/permissions';
 import {MASTER_MODULES} from '../layout/navigation';
@@ -9,7 +9,7 @@ import type {ImportData,SheetName} from '../core/importXlsx';
 import '../styles/master-data.css';
 
 export default function MasterData(){
-  const {state,update,user}=useStore();
+  const {state,update,user,loadDemo}=useStore();
   const [data,setData]=useState<ImportData|null>(null),[filename,setFilename]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState(''),[tab,setTab]=useState<SheetName>('Clientes'),[page,setPage]=useState(0);
   const request=useRef(0),fileInput=useRef<HTMLInputElement>(null);
   const plan=useMemo(()=>data?planImport(data,state):null,[data,state]);
@@ -30,6 +30,7 @@ export default function MasterData(){
   const preview=data?.rows.filter(r=>r.sheet===tab)??[];
   return <div className="stack master-page">
     <header className="heading"><div><span className="eyebrow">MANTENIMIENTO</span><h1>Datos maestros</h1><p>Organiza tus catálogos y carga la información de tu negocio desde un solo lugar.</p></div><span className="master-local"><Database size={16}/> Guardado en este navegador</span></header>
+    {user?.role==='admin'&&user.tenant==='AULA'&&<section className="erp-demo-strip"><div><strong>Datos de demostración disponibles</strong><p>30 clientes, 40 productos, 4 almacenes y documentos comerciales para practicar. Restaurar reemplaza solamente los registros comerciales de este navegador.</p></div><button type="button" className="btn btn-outline-primary" onClick={loadDemo}><RotateCcw size={15}/> Restaurar escenario de aula</button></section>}
     <section className="master-import" aria-labelledby="import-title"><div className="master-import-copy"><span className="master-icon"><FileSpreadsheet size={26}/></span><div><h2 id="import-title">Importar datos desde Excel</h2><p>Catálogos, stock inicial, compras, cotizaciones, pedidos, ventas, cobros, devoluciones y caja. Revisa la vista previa antes de confirmar.</p><small>La carga agrega registros. No reemplaza datos existentes. Máximo 5 MB y 10 000 filas.</small></div></div>
       <div className="master-actions"><a className="btn btn-outline-secondary" href="/plantillas/ERP_Datos_Importacion.xlsx" download><Download size={16}/> Descargar XLSX de ejemplo</a>{user?.role==='admin'&&<label role="button" tabIndex={busy?-1:0} aria-disabled={busy} onKeyDown={e=>{if(!busy&&(e.key==='Enter'||e.key===' ')){e.preventDefault();fileInput.current?.click();}}} className={'btn btn-primary '+(busy?'disabled':'')}><Upload size={16}/> {busy?'Validando archivo…':'Importar datos XLSX'}<input ref={fileInput} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Seleccionar archivo XLSX" disabled={busy} onChange={e=>void read(e.target.files?.[0])} hidden/></label>}</div>
       {user?.role!=='admin'&&<p className="muted">La importación masiva está disponible para el administrador.</p>}

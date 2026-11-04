@@ -1,0 +1,9 @@
+FLUJO COMERCIAL: MÓDULOS CONECTADOS
+Última revisión: 2026-10-28 (ver docs/REVISION_FLUJO_COMERCIAL_2026-10-28.md)
+
+Flujo: Cotizaciones -> Pedidos -> Ventas -> Comprobantes -> Cobros -> Postventa y devoluciones.
+- Aprobar cotización y «Crear pedido» enlaza al pedido; el pedido debe pasar por confirmado y preparando.
+- «Registrar venta» descuenta stock y deja el comprobante pendiente; Comprobantes emite serie y número.
+- Cobros exige comprobante emitido. Postventa exige comprobante, genera nota de crédito y gestiona reembolsos.
+Asistente flotante local conservado; integración Gemini opcional con backend privado.
+ERP demostrativo con datos en el navegador; sin emisión SUNAT ni cobros bancarios reales.

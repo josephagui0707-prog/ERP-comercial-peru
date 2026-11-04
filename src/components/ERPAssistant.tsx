@@ -1,63 +1,100 @@
-import {useState} from 'react';
-import type {FormEvent} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Bot,ArrowUp, X,Minimize2,MessageCircle,ArrowRight,ShieldCheck,Sparkles} from 'lucide-react';
+import {Bot,ArrowUp,X,Minimize2,ShieldCheck,ExternalLink,Sparkles,Trash2} from 'lucide-react';
 import {useStore} from '../core/store';
-import type {State} from '../core/types';
-import {money} from '../core/types';
-import {dueOn,stockOf} from '../core/operations';
+import {api} from '../core/api';
+import {allowed} from '../core/permissions';
+import {advanceOrder,createQuote,dueOn,stockOf} from '../core/operations';
+import {createThirdParty,newProductId,saveProduct} from '../features/inventory/service';
+import {interpretLocal} from '../core/assistant-local';
+import type {LocalProposal} from '../core/assistant-local';
 import './assistant.css';
 
-type Message={by:'user'|'bot';text:string};
-const tips:Record<string,string>={
- 'cotizaciones':'Estás en Cotizaciones. Crea una oferta, apruébala cuando el cliente la acepte y pasarás automáticamente a Pedidos.',
- 'pedidos':'Estás en Pedidos. Cada pedido conserva los productos de la cotización. Selecciona Preparar venta para abrir Ventas con el pedido precargado.',
- 'ventas':'Estás en Ventas. Confirma la venta en un almacén; el stock se descuenta y pasarás a Comprobantes.',
- 'comprobantes':'Estás en Comprobantes. Consulta o exporta el PDF de demostración y continúa al cobro de la misma venta.',
- 'cobros':'Estás en Cobros. Selecciona una venta pendiente, registra un pago simulado con tu confirmación y revisa el saldo.',
- 'devoluciones':'Estás en Postventa. Vincula cada devolución a una venta y el inventario se actualiza.',
- 'clientes':'En Clientes puedes mantener los datos maestros. También es posible dar de alta un cliente sin salir del flujo comercial.',
- 'inicio':'El dashboard es una vista de indicadores; para registrar una operación entra en Cotizaciones.',
- 'stock':'En Existencias se consulta la disponibilidad de cada almacén. La venta valida las cantidades antes de descontar inventario.',
- 'integraciones':'Las integraciones deben configurarse con credenciales protegidas en un servidor; las demostraciones locales no son pasarelas bancarias reales.',
-};
-function localAnswer(question:string,s:State,section:string){
- const q=question.toLocaleLowerCase('es-PE');
- const pendingQuotes=s.quotes.filter(x=>x.status==='borrador'||x.status==='aprobada').length;
- const pendingOrders=s.orders.filter(x=>x.status!=='completado'&&x.status!=='cancelado').length;
- const unpaid=s.sales.filter(v=>v.status==='vigente'&&dueOn(s,v)>0);
- const balance=unpaid.reduce((a,v)=>a+dueOn(s,v),0);
- const low=s.products.filter(p=>p.active&&stockOf(s,p.id)<=p.min).length;
- if(/(qué|que).*(hac|sigui)|siguiente paso|donde (empiezo|continu)|cómo comenzar|ayuda/.test(q))return tips[section]||'Para iniciar, abre Cotizaciones. Los módulos siguen separados y el ERP te conduce al siguiente cuando confirmas una acción.';
- if(/cotiza|presupuesto|oferta/.test(q))return `Hay ${pendingQuotes} cotizaciones abiertas. Una cotización reúne cliente, productos y precios; cuando el cliente la acepta, el sistema crea un pedido desde ella. En Cotizaciones puedes aprobarlas y enviarlas a Pedidos.`;
- if(/pedido|orden/.test(q))return `Hay ${pendingOrders} pedidos pendientes. Un pedido se registra tras la aceptación de una cotización y antes de registrar la venta. En Pedidos puedes abrir una venta precargada.`;
- if(/cobr|pago|deuda|pendiente|saldo/.test(q))return `Hay ${unpaid.length} ventas con saldo por cobrar, que suman ${money(balance)}. Abre Cobros y selecciona la venta para continuar. Los métodos y pagos disponibles son simulados.`;
- if(/stock|existencia|inventario|almacén|almacen/.test(q))return `Hay ${low} productos activos cuyo stock total está en o por debajo del mínimo configurado. Antes de confirmar una venta se comprueba el stock en el almacén elegido. Revisa Existencias si necesitas reponer.`;
- if(/client/.test(q))return `Hay ${s.clients.filter(c=>c.active).length} clientes activos. Puedes registrar uno en Mantenimiento → Clientes antes de preparar la cotización.`;
- if(/boleta|factura|comprobante|sunat/.test(q))return 'Cuando se registra una venta desde un pedido, se asocia un comprobante de demostración que se puede exportar a PDF. No es un comprobante electrónico autorizado por SUNAT.';
- if(/devoluc|postventa|reembolso/.test(q))return 'Las devoluciones se encuentran en Flujo comercial → Postventa y devoluciones. Selecciona una venta, producto, cantidad y motivo; el sistema vincula el registro a la venta y ajusta el inventario. La gestión financiera de reembolsos reales requiere una integración adicional.';
- if(/ia|api|gemini|inteligencia artificial/.test(q))return 'Funciono en modo guía local, con respuestas basadas en los registros de este navegador. Si el administrador conecta un backend seguro con Gemini, también puedo responder consultas en lenguaje natural. Nunca efectúo pagos ni operaciones sin una acción explícita del usuario.';
- return `${tips[section]||'Puedes consultar el estado de cotizaciones, pedidos, ventas, cobros, inventario y clientes.'} Dime qué necesitas hacer o escribe «¿Qué ventas faltan cobrar?».`;
-}
+type Msg={by:'user'|'bot';text:string};
+type Command={type:'trip';id:string;label:string}|{type:'order';id:string;status:'confirmado'|'preparando';label:string}|LocalProposal;
+type Answer={answer?:string;mode:'local'|'gemini';fallback?:boolean;providerUnavailable?:boolean;open?:string;proposal?:{id:string;label:string}};
+
+const WELCOME_MSG = '¡Hola! Soy el asistente ERP con IA Gemini.\nPuedo consultar tus datos, explicar procesos y preparar acciones para que las confirmes.\n\nCon Gemini activo, también puedo resolver dudas sobre IGV, SUNAT y procesos comerciales.\n\nEscribe «ayuda» para ver ejemplos.';
+
+const shortcutText=(role:string)=>role==='monitor'?['Ver mis rutas','Ayuda']:role==='repartidor'?['Ver mis rutas','Crea una entrega simulada','Ayuda']:role==='finanzas'?['Consultar saldos','Ventas de hoy','Ayuda']:role==='almacen'?['Productos con poco stock','Registrar producto','Ayuda']:['Nueva cotización','Ventas de hoy','Productos con poco stock','Ayuda'];
+
 export default function ERPAssistant({section}:{section:string}){
- const {state:s,user}=useStore();const navigate=useNavigate();
- const [open,setOpen]=useState(false);const [question,setQuestion]=useState('');
- const [messages,setMessages]=useState<Message[]>([{by:'bot',text:'¡Hola! Soy el asistente comercial del ERP. Puedo explicarte el siguiente paso, resumir pendientes y ayudarte a ubicar operaciones. No realizo cambios sin tu confirmación.'}]);
- const [busy,setBusy]=useState(false);const [mode,setMode]=useState<'local'|'gemini'>('local');
- const endpoint=(import.meta.env.VITE_ASSISTANT_API_URL||'').trim();
+ const {state:s,user,update}=useStore(),navigate=useNavigate();
+ const [open,setOpen]=useState(false),[question,setQuestion]=useState(''),[busy,setBusy]=useState(false),[mode,setMode]=useState('local');
+ const [messages,setMessages]=useState<Msg[]>([{by:'bot',text:WELCOME_MSG}]);
+ const [command,setCommand]=useState<Command|null>(null),[link,setLink]=useState('');
+ const bottom=useRef<HTMLDivElement>(null),lock=useRef(false);
+
+ useEffect(()=>{if(open)bottom.current?.scrollIntoView({block:'nearest',behavior:'smooth'});},[messages,open,command]);
+
  if(!user)return null;
- const go=(path:string)=>{navigate(path);setOpen(false);};
- const send=async(raw:string)=>{const value=raw.trim().slice(0,500);if(!value||busy)return;setQuestion('');setMessages(old=>[...old,{by:'user',text:value}]);setBusy(true);
-  const fallback=localAnswer(value,s,section);
-  if(!endpoint){setMessages(old=>[...old,{by:'bot',text:fallback}]);setMode('local');setBusy(false);return;}
-  try{const valid=s.sales.filter(v=>v.status==='vigente');const pending=valid.filter(v=>dueOn(s,v)>0);
-   const payload={question:value,context:{section,counts:{clients:s.clients.filter(c=>c.active).length,openQuotes:s.quotes.filter(q=>q.status==='borrador'||q.status==='aprobada').length,openOrders:s.orders.filter(o=>o.status!=='completado'&&o.status!=='cancelado').length,sales:valid.length,unpaid:pending.length,lowStockProducts:s.products.filter(p=>p.active&&stockOf(s,p.id)<=p.min).length},pendingBalance:Number(pending.reduce((a,v)=>a+dueOn(s,v),0).toFixed(2))}};
-   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
-   if(!response.ok)throw Error('IA no disponible');const result=await response.json();
-   if(typeof result.answer!=='string'||!result.answer.trim())throw Error('Respuesta vacía');setMessages(old=>[...old,{by:'bot',text:result.answer.slice(0,1700)}]);setMode('gemini');
-  }catch{setMessages(old=>[...old,{by:'bot',text:`La IA externa no está disponible. Guía local: ${fallback}`}]);setMode('local');}finally{setBusy(false);}
+ const role=user.role;
+
+ const say=(text:string)=>setMessages(old=>[...old.slice(-49),{by:'bot',text}]);
+ const go=(path:string)=>{if(allowed(role,path.split('?')[0])){navigate('/'+path);setOpen(false);}};
+
+ const clearHistory=()=>{
+  setMessages([{by:'bot',text:WELCOME_MSG}]);
+  setCommand(null);
+  setLink('');
  };
- const submit=(event:FormEvent)=>{event.preventDefault();void send(question);};
- return <div className="erp-assistant-root"><button type="button"className="erp-assistant-launch"aria-label="Abrir asistente del ERP"aria-expanded={open}onClick={()=>setOpen(x=>!x)}>{open?<X size={24}/>:<><Bot size={25}/><i/></>}</button>
- {open&&<section className="erp-assistant-panel"aria-label="Asistente comercial"><header><div className="erp-assistant-avatar"><Bot size={23}/></div><div><b>Asistente ERP</b><small>{mode==='gemini'?'IA Gemini conectada':'Guía local contextual'} · Solo lectura</small></div><button onClick={()=>setOpen(false)}aria-label="Minimizar asistente"><Minimize2 size={18}/></button></header><div className="erp-assistant-messages"role="log"aria-live="polite">{messages.map((m,i)=><div key={i}className={'erp-assistant-message '+m.by}>{m.by==='bot'&&<Bot size={15}/>}<p>{m.text}</p></div>)}{busy&&<p className="erp-assistant-typing">Preparando respuesta...</p>}</div><div className="erp-assistant-shortcuts"><button onClick={()=>void send('¿Qué debo hacer ahora?')}>¿Qué sigue?</button><button onClick={()=>void send('¿Cuánto falta cobrar?')}>Saldos</button><button onClick={()=>void send('¿Cuántas cotizaciones están pendientes?')}>Cotizaciones</button></div><div className="erp-assistant-links"><button onClick={()=>go('/cotizaciones')}><ArrowRight size={14}/> Iniciar en Cotizaciones</button><button onClick={()=>go('/cobros')}><MessageCircle size={14}/> Ver cobros pendientes</button></div><form onSubmit={submit}><input aria-label="Escribe tu consulta"value={question}onChange={e=>setQuestion(e.target.value)}maxLength={500}placeholder="Pregúntame sobre el ERP..."/><button type="submit"aria-label="Enviar consulta"disabled={!question.trim()||busy}><ArrowUp size={17}/></button></form><footer><ShieldCheck size={13}/> No ejecuta operaciones. No envíes datos privados. <Sparkles size={13}/></footer></section>}</div>;
+
+ const send=async(raw:string)=>{
+  const value=raw.trim();if(!value||lock.current)return;
+  lock.current=true;setBusy(true);setMode('local');setCommand(null);setLink('');setQuestion('');setMessages(old=>[...old,{by:'user',text:value}]);
+  const q=value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  try{
+   if(/\b(confirma|confirmar|prepara|preparar)\b/.test(q)&&/pedido/.test(q)&&!/simula/.test(q)){
+    if(!allowed(role,'pedidos')){say('Tu perfil no puede cambiar pedidos.');return;}
+    const code=q.match(/\bped-[a-z0-9-]+\b/i)?.[0],order=s.orders.find(o=>o.id.toLowerCase()===code?.toLowerCase());
+    if(!order){say('Incluye el código del pedido; por ejemplo: «Confirma el pedido PED-1».');return;}
+    const status=q.includes('prepar')?'preparando':'confirmado';
+    if(order.status!==(status==='preparando'?'confirmado':'pendiente')){say('El pedido '+order.id+' está '+order.status+' y no admite ese cambio.');return;}
+    say('Propuesta: '+order.id+' pasará de '+order.status+' a '+status+'. No he guardado ningún cambio.');setCommand({type:'order',id:order.id,status,label:'Confirmar cambio de estado'});return;
+   }
+   const local=interpretLocal(value,s,role);
+   if(local){say(local.answer);if(local.open)setLink(local.open);if(local.proposal)setCommand(local.proposal);return;}
+   const counts={openOrders:s.orders.filter(o=>!['completado','cancelado'].includes(o.status)).length,openQuotes:s.quotes.filter(o=>['borrador','aprobada'].includes(o.status)).length,unpaid:s.sales.filter(v=>v.status==='vigente'&&dueOn(s,v)>0).length,lowStockProducts:s.products.filter(p=>p.active&&stockOf(s,p.id)<=p.min).length};
+   const history=messages
+    .slice(1)
+    .slice(-20)
+    .map(m=>({role:m.by==='user'?'user':'model' as 'user'|'model',text:m.text}));
+   const ans=await api<Answer>('/assistant','POST',{question:value,context:{counts},history});
+   setMode(ans.mode);if(ans.answer)say(ans.answer);
+   else say('No tengo una acción segura para esa consulta. Puedo mostrarte datos reales o abrir formularios. Prueba «ayuda», «nueva cotización», «stock», «ventas de hoy» o «crear una entrega simulada».');
+   if(ans.proposal)setCommand({type:'trip',...ans.proposal});if(ans.open==='rutas'&&allowed(role,'rutas'))setLink('rutas');
+  }catch(e){
+   const err=e as Error;
+   const isNetwork=err.message.includes('fetch')||err.message.includes('network')||err.message.includes('NetworkError')||err.message.includes('Failed to fetch');
+   if(isNetwork){say('No se pudo conectar con el servidor. Verifica tu conexión a internet e inténtalo de nuevo.');}
+   else{say('Error al procesar la consulta: '+err.message+'. Prueba «ayuda» para usar comandos locales.');}
+  }
+  finally{setBusy(false);lock.current=false;}
+ };
+
+ const apply=async()=>{
+  if(!command||lock.current)return;lock.current=true;setBusy(true);
+  try{
+   if(command.type==='trip'){const t=await api<{id:string}>('/assistant/confirm','POST',{id:command.id});say('Entrega creada correctamente. Puedes abrirla en Rutas.');setLink('rutas?entrega='+encodeURIComponent(t.id));}
+   else if(command.type==='order'){if(!allowed(role,'pedidos'))throw Error('Sin permisos.');update(old=>advanceOrder(old,command.id,command.status));say('Pedido '+command.id+' actualizado a '+command.status+'.');setLink('pedidos?focus='+encodeURIComponent(command.id));}
+   else if(command.type==='quote'){if(!allowed(role,'cotizaciones'))throw Error('Sin permisos.');update(old=>{const p=old.products.find(x=>x.id===command.productId);if(!p)throw Error('El producto ya no existe.');return createQuote(old,command.clientId,[{productId:p.id,qty:command.qty,price:p.price,discount:0}]);});say('Cotización guardada como borrador. Puedes revisarla, aprobarla y convertirla a pedido.');setLink('cotizaciones');}
+   else if(command.type==='client'){if(!allowed(role,'clientes'))throw Error('Sin permisos.');update(old=>{const created=createThirdParty(old,'cliente',command.name,command.document);const c=created.state.clients.find(c=>c.id===created.id);if(c)c.email=command.email;return created.state;});say('Cliente registrado en el catálogo de este navegador.');setLink('clientes');}
+   else if(command.type==='product'){if(!allowed(role,'productos'))throw Error('Sin permisos.');update(old=>saveProduct(old,{id:newProductId(old),sku:command.sku,name:command.name,category:command.category,price:command.price,cost:command.cost,min:5,active:true}));say('Producto registrado. Stock inicial: 0. Registra una entrada antes de venderlo.');setLink('productos');}
+   setCommand(null);
+  }catch(e){say('No se guardó el cambio: '+(e as Error).message);setCommand(null);}
+  finally{lock.current=false;setBusy(false);}
+ };
+
+ const linkLabel=link.startsWith('rutas')?'Abrir ruta':link.startsWith('pedidos')?'Abrir pedido':link.startsWith('cotizaciones')?'Abrir cotizaciones':link.startsWith('productos')?'Abrir productos':link.startsWith('clientes')?'Abrir clientes':'Abrir módulo';
+
+ return <div className="erp-assistant-root"><button type="button" className="erp-assistant-launch" aria-label="Abrir asistente del ERP" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?<X size={22}/>:<Bot size={25}/>}</button>
+ {open&&<section className="erp-assistant-panel" aria-label="Asistente del ERP"><header><div className="erp-assistant-avatar"><Bot size={22}/></div><div><b>Asistente de operaciones</b><small><span className="erp-assistant-badge"><Sparkles size={10}/>{mode==='gemini'?'✨ Gemini AI':'📊 Datos locales'}</span> · {user.name}</small></div>
+  {messages.length>1&&<button type="button" className="erp-assistant-clear" aria-label="Limpiar conversación" title="Limpiar historial" onClick={clearHistory}><Trash2 size={15}/></button>}
+  <button type="button" aria-label="Minimizar asistente" onClick={()=>setOpen(false)}><Minimize2 size={17}/></button></header>
+  <div className="erp-assistant-messages" role="log" aria-live="polite">{messages.map((m,i)=><div key={i} className={'erp-assistant-message '+m.by}>{m.by==='bot'&&<Bot size={15}/>}<p>{m.text}</p></div>)}{busy&&<small className="erp-assistant-typing">Procesando consulta…</small>}<div ref={bottom}/></div>
+  {command&&<div className="erp-assistant-links erp-assistant-confirm"><button disabled={busy} onClick={()=>void apply()}>{command.label}</button><button disabled={busy} onClick={()=>{setCommand(null);say('Propuesta descartada, no hubo cambios.');}}>Cancelar</button></div>}
+  {link&&<div className="erp-assistant-links"><button type="button" onClick={()=>go(link)}><ExternalLink size={14}/>{linkLabel}</button></div>}
+  <div className="erp-assistant-shortcuts">{shortcutText(role).map(q=><button type="button" disabled={busy||command!==null} onClick={()=>void send(q)} key={q}>{q}</button>)}</div>
+  <form onSubmit={e=>{e.preventDefault();void send(question);}}><input aria-label="Escribe tu consulta" value={question} maxLength={500} autoComplete="off" spellCheck={false} onChange={e=>setQuestion(e.target.value)} placeholder="Pregunta por stock, ventas o crea un documento…"/><button aria-label="Enviar consulta" disabled={busy||!question.trim()}><ArrowUp size={17}/></button></form><footer><ShieldCheck size={13}/> Cambios solo tras confirmación · {section}</footer>
+ </section>}</div>;
 }

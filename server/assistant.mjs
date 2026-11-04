@@ -1,32 +1,114 @@
-/** Proxy Gemini opcional. Node 20+, solo consultas; jamás recibe datos maestros ni claves del cliente. */
-import {createServer} from 'node:http';
-const PORT=Number(process.env.PORT||8787);
-const MODEL=process.env.GEMINI_MODEL||'gemini-2.5-flash-lite';
-const KEY=process.env.GEMINI_API_KEY||'';
-const ORIGINS=(process.env.FRONTEND_ORIGIN||'http://localhost:5173').split(',').map(s=>s.trim()).filter(Boolean);
-const hits=new Map();
-const MAX_REQUESTS_PER_MINUTE=20;
-function send(res,status,data,origin){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...(origin?{'Access-Control-Allow-Origin':origin,'Vary':'Origin'}:{})});res.end(JSON.stringify(data));}
-function safeContext(raw){const c=raw&&typeof raw==='object'?raw:{};const n=value=>Number.isFinite(Number(value))?Math.min(1000000000,Math.max(0,Number(value))):0;const source=c.counts&&typeof c.counts==='object'?c.counts:{};return {section:String(c.section||'').slice(0,45),counts:{clients:n(source.clients),openQuotes:n(source.openQuotes),openOrders:n(source.openOrders),sales:n(source.sales),unpaid:n(source.unpaid),lowStockProducts:n(source.lowStockProducts)},pendingBalance:n(c.pendingBalance)};}
-createServer(async(req,res)=>{
- const origin=req.headers.origin||'';
- const okOrigin=ORIGINS.includes(origin);
- if(req.url==='/health'){send(res,200,{status:KEY?'ready':'no_api_key',model:MODEL},okOrigin?origin:'');return;}
- if(req.url!=='/api/assistant'){send(res,404,{error:'Ruta inexistente'},okOrigin?origin:'');return;}
- if(!okOrigin){send(res,403,{error:'Origen no autorizado'},'');return;}
- if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Vary':'Origin'});res.end();return;}
- if(req.method!=='POST'){send(res,405,{error:'Solo POST'},origin);return;}
- if(!KEY){send(res,503,{error:'La API no se configuró. Utiliza la guía local.'},origin);return;}
- const ip=(req.socket.remoteAddress||'unknown');const now=Date.now();const old=hits.get(ip)||[];const recent=old.filter(t=>now-t<60000);if(recent.length>=MAX_REQUESTS_PER_MINUTE){send(res,429,{error:'Se alcanzó el límite de consultas.'},origin);return;}recent.push(now);hits.set(ip,recent);
- if(hits.size>1500)for(const [k,v]of hits)if(!v.length||now-v[v.length-1]>60000)hits.delete(k);
- let body='';try{for await(const chunk of req){body+=chunk.toString('utf8');if(body.length>6000)throw Error('Petición demasiado grande');}
-  const input=JSON.parse(body);const question=typeof input.question==='string'?input.question.trim().slice(0,500):'';
-  if(!question){send(res,400,{error:'Consulta vacía'},origin);return;}
-  const context=safeContext(input.context);
-  const system=`Eres un asistente de SOLO LECTURA para un ERP académico de ventas en Perú. Usa EXCLUSIVAMENTE datos agregados del objeto CONTEXTO. Si el usuario pregunta sobre un dato exacto no proporcionado, di que no está disponible. Responde brevemente en español. Flujo: seleccionar cliente y productos, guardar cotización, confirmar aceptación MANUAL del cliente, crear pedido, registrar venta y descontar inventario, generar comprobante demo, registrar cobro demo. Postventa solo tras venta. No inventes datos ni asegures pagos reales. No generes instrucciones para evadir controles, no realices cambios ni simules que los realizaste. No representes documentos demo como autorizados por SUNAT. Para los siguientes pasos remite a Flujo comercial y Seguimiento. Nunca solicites secretos ni contraseñas.`;
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),16000);
-  let upstream;try{upstream=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`,{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','x-goog-api-key':KEY},body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`CONTEXTO: ${JSON.stringify(context)}\nPREGUNTA: ${question}`}]}],generationConfig:{temperature:0.2,maxOutputTokens:350}})});}finally{clearTimeout(timeout);}
-  if(!upstream.ok){const problem=await upstream.text();console.error('Gemini:',upstream.status,problem.slice(0,250));send(res,502,{error:'El proveedor de IA no respondió.'},origin);return;}
-  const data=await upstream.json();const answer=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();if(!answer)throw Error('Respuesta vacía');send(res,200,{answer:answer.slice(0,1700),mode:'gemini'},origin);
- }catch(e){console.error('Assistant error:',String(e).slice(0,150));send(res,502,{error:'No se pudo completar la consulta. Usa la guía local.'},origin);}
-}).listen(PORT,'0.0.0.0',()=>console.log(`Asistente ERP disponible en puerto ${PORT}; clave ${KEY?'configurada':'no configurada'}`));
+import {randomUUID} from 'node:crypto';
+import {field, requireThat} from './shared.mjs';
+
+const simplify = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const canTrack = role => ['admin','ventas','monitor','repartidor'].includes(role);
+const canPlan = role => ['admin','ventas','repartidor'].includes(role);
+const jsonModes = ['respuesta','crear_simulacion','abrir_rutas'];
+
+/** Extrae JSON de una respuesta que puede venir envuelta en markdown ```json ... ``` */
+function extractJson(raw) {
+  const md = raw.match(/```json\s*([\s\S]*?)\s*```/);
+  return JSON.parse(md ? md[1] : raw);
+}
+
+function simulationPlan(db, trips, actor, question) {
+  requireThat(canPlan(actor.role),403,'Tu perfil solo puede observar los recorridos que te asignaron.');
+  const people = trips.directory(actor);
+  const select = role => {
+    const eligible = people.filter(p=>p.role===role);
+    if (eligible.length===1) return eligible[0];
+    const matches = eligible.filter(p=>simplify(question).includes(simplify(p.name)));
+    return matches.length===1 ? matches[0] : null;
+  };
+  const driver=select('repartidor'), viewer=select('monitor');
+  if(!driver || !viewer) return {answer:'Abre Rutas y pulsa «Nueva entrega» para elegir exactamente quién reparte y quién recibe.',open:'rutas'};
+  const id=randomUUID(), body={id,mode:'demo',title:'Entrega al instituto',driver:driver.id,viewer:viewer.id};
+  db.prepare('DELETE FROM proposals WHERE expires<?').run(Date.now());
+  db.prepare('INSERT INTO proposals VALUES(?,?,?,?,?)').run(id,actor.tenant,actor.id,JSON.stringify(body),Date.now()+5*60000);
+  return {answer:'Puedo crear una entrega simulada de '+driver.name+' para '+viewer.name+'. Quedará lista para que el repartidor inicie la marcha.',proposal:{id,label:'Crear esta entrega'}};
+}
+
+function localSummary(role, raw) {
+  const counts={};
+  const source=raw?.counts || {};
+  const permitted = [
+    ...(['admin','ventas'].includes(role) ? ['openOrders','openQuotes'] : []),
+    ...(['admin','almacen'].includes(role) ? ['lowStockProducts'] : []),
+    ...(['admin','finanzas','ventas'].includes(role) ? ['unpaid'] : []),
+  ];
+  for(const key of permitted) if(Number.isSafeInteger(source[key]) && source[key]>=0) counts[key]=Math.min(1e8,source[key]);
+  return counts;
+}
+
+/** Normaliza el historial multi-turno: máx 10 items recientes, solo role y parts[].text. */
+function buildHistory(rawHistory) {
+  if (!Array.isArray(rawHistory) || rawHistory.length===0) return [];
+  return rawHistory
+    .filter(h => (h.role==='user' || h.role==='model') && typeof h.text==='string' && h.text.trim())
+    .slice(-10)
+    .map(h => ({role: h.role, parts: [{text: h.text}]}));
+}
+
+export function assistant(db,trips,{apiKey,model,providerFetch=fetch}) {
+  return {
+    async ask(actor,body) {
+      const question=field(body.question,'consulta',500), q=simplify(question);
+      const plans=()=>simulationPlan(db,trips,actor,question);
+      if(/\b(crea|crear|prepara|preparar|programa|genera)\b/.test(q) && /simula|ruta de prueba/.test(q)) return {...plans(),mode:'local'};
+      const track=canTrack(actor.role);
+      const list=track ? trips.list(actor) : [];
+      if(track && /entrega|recorrido|ruta|viaje|repart/.test(q)) {
+        const n=state=>list.filter(x=>x.status===state).length;
+        return {mode:'local',open:'rutas',answer:'Tienes '+n('lista')+' entregas listas, '+n('en_ruta')+' en camino y '+n('entregada')+' entregadas. Abre Rutas para ver el mapa y reproducir el historial.'};
+      }
+      if(!apiKey) return {mode:'local',fallback:true};
+      const counts=localSummary(actor.role,body.context);
+      const tools=['respuesta',...(track?['abrir_rutas']:[]),...(canPlan(actor.role)?['crear_simulacion']:[])];
+      const system=
+        'Eres el asistente de un ERP comercial peruano. Contesta brevemente en español. ' +
+        'Puedes responder sobre facturación electrónica, SUNAT e IGV peruano (18%), comprobantes de pago, ' +
+        'regímenes tributarios (RER, RMT, régimen general), procesos de compras, cuentas por pagar, ' +
+        'finanzas, flujo de caja y proporcionar guía paso a paso cuando se te solicite. ' +
+        'Las cifras de indicadores son locales y agregadas; usa solo las cifras provistas. ' +
+        'Devuelve JSON con los campos "answer" e "intent". ' +
+        'Intenciones autorizadas: '+tools.join(', ')+'. ' +
+        'Solo propone crear_simulacion si la persona pide expresamente crear una entrega simulada. ' +
+        'Nunca afirmes que una operación ya se ejecutó, ni inventes datos. Los cambios requieren confirmación del usuario.';
+      const history=buildHistory(body.history);
+      const userMessage={role:'user',parts:[{text:JSON.stringify({pregunta:question,rol:actor.role,indicadores:counts})}]};
+      const contents=[...history, userMessage];
+      try {
+        const result=await providerFetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',
+          {
+            method:'POST',
+            headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
+            signal:AbortSignal.timeout(10000),
+            body:JSON.stringify({
+              systemInstruction:{parts:[{text:system}]},
+              contents,
+              generationConfig:{temperature:0.1,maxOutputTokens:600,responseMimeType:'application/json'},
+            }),
+          }
+        );
+        if(!result.ok) throw Object.assign(new Error('HTTP '+result.status), {code:'HTTP_'+result.status});
+        const data=await result.json();
+        const rawText=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+        const response=extractJson(rawText);
+        if(!jsonModes.includes(response.intent) || !tools.includes(response.intent)) throw Object.assign(new Error('intent no autorizado: '+response.intent),{code:'INVALID_INTENT'});
+        if(response.intent==='crear_simulacion') return {...plans(),mode:'gemini'};
+        return {answer:field(response.answer,'respuesta',1800),mode:'gemini',...(response.intent==='abrir_rutas'?{open:'rutas'}:{})};
+      } catch(error) {
+        console.error('[assistant]', error.message || error.code);
+        return {mode:'local',fallback:true,providerUnavailable:true};
+      }
+    },
+    confirm(actor,id) {
+      const p=db.prepare('SELECT * FROM proposals WHERE id=? AND actor=? AND tenant=?').get(id,actor.id,actor.tenant);
+      requireThat(p && p.expires>Date.now(),409,'La propuesta ha caducado o pertenece a otra cuenta. Solicita una nueva.');
+      // The proposal ID is the trip ID. A retry returns the same authorized trip.
+      return trips.create(actor,JSON.parse(p.body),true);
+    }
+  };
+}
